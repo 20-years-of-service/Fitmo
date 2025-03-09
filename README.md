@@ -19,9 +19,8 @@
 ---
 
 ## 🛠️ Tecnologias Utilizadas  
-- **Frontend:** Flutter (Dart + HTML)  
-- **Backend:** Kotlin 
-- **Banco de Dados:** NoSQL  
+- **Flutter:** Flutter (Dart + HTML)  
+- **Visual Studio Code:** IDE   
 - **Design:** Figma (UI/UX)  
 - **Versionamento:** Git + GitHub  
 
