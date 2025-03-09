@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:io' show Platform;
 import 'profile_setup_screen.dart';
+import 'welcome_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -8,7 +11,8 @@ class OnboardingScreen extends StatefulWidget {
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends State<OnboardingScreen>
+    with WidgetsBindingObserver {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -40,9 +44,54 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Adiciona observer para detectar mudanças no ciclo de vida do app
+    WidgetsBinding.instance.addObserver(this);
+    // Garantir que estamos em modo tela cheia
+    _forceFullScreenMode();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Reforça a tela cheia quando o app volta ao primeiro plano
+    if (state == AppLifecycleState.resumed) {
+      _forceFullScreenMode();
+    }
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  // Função atualizada para garantir o modo com barra de notificação visível
+  void _forceFullScreenMode() {
+    if (Platform.isAndroid) {
+      // Usa edge-to-edge com barra de notificação visível
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.edgeToEdge,
+        overlays: [SystemUiOverlay.top], // Mantém a barra de status visível
+      );
+
+      // Define estilo da barra de notificação
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarDividerColor: Colors.transparent,
+        ),
+      );
+    } else {
+      // iOS e outros
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top], // Mantém a barra de status visível
+      );
+    }
   }
 
   void _goToNextPage() {
@@ -61,84 +110,92 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Forçar o modo tela cheia a cada build
+    _forceFullScreenMode();
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          Expanded(
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: _pages.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentPage = index;
-                });
-              },
-              itemBuilder: (context, index) {
-                return _pages[index];
-              },
+      body: SafeArea(
+        // O SafeArea com bottom: false garante que o conteúdo use o espaço da barra de navegação
+        // mas respeite áreas como notches ou câmeras no topo da tela
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _pages.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  return _pages[index];
+                },
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 30, right: 30, bottom: 30),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Dots indicadores de página
-                Row(
-                  children: List.generate(
-                    _pages.length,
-                    (index) => Container(
-                      margin: const EdgeInsets.only(right: 6),
-                      width: _currentPage == index ? 10 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color:
-                            _currentPage == index
-                                ? const Color(0xFF1976D2)
-                                : Colors.grey.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(4),
+            Padding(
+              padding: const EdgeInsets.only(left: 30, right: 30, bottom: 30),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Dots indicadores de página
+                  Row(
+                    children: List.generate(
+                      _pages.length,
+                      (index) => Container(
+                        margin: const EdgeInsets.only(right: 6),
+                        width: _currentPage == index ? 10 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color:
+                              _currentPage == index
+                                  ? const Color(0xFF1976D2)
+                                  : Colors.grey.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                // Botão de próximo (só aparece na última tela)
-                _currentPage == _pages.length - 1
-                    ? Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF8868CD).withOpacity(0.4),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 2),
+                  // Botão de próximo (só aparece na última tela)
+                  _currentPage == _pages.length - 1
+                      ? Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                        ],
-                      ),
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        icon: const Icon(
-                          Icons.arrow_forward,
-                          color: Colors.white,
-                          size: 20,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF8868CD).withOpacity(0.4),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        onPressed: _goToNextPage,
-                      ),
-                    )
-                    : const SizedBox(width: 44),
-              ],
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          onPressed: _goToNextPage,
+                        ),
+                      )
+                      : const SizedBox(width: 44),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -158,70 +215,98 @@ class OnboardingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
+    // Usamos LayoutBuilder para adaptar o layout baseado no espaço disponível
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculamos proporções em vez de usar valores fixos
+        final double availableHeight = constraints.maxHeight;
+        final double availableWidth = constraints.maxWidth;
 
-    return SafeArea(
-      child: Column(
-        children: [
-          // Parte superior com gradiente e ilustração
-          Container(
-            height: screenHeight * 0.43,
-            width: screenWidth,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+        // Ajustamos proporcionalmente baseado na orientação e tamanho da tela
+        final bool isPortrait = availableHeight > availableWidth;
+        final double topContainerHeight =
+            isPortrait
+                ? availableHeight *
+                    0.45 // 45% da altura em retrato
+                : availableHeight * 0.55; // 55% da altura em paisagem
+
+        return Column(
+          children: [
+            // Parte superior com gradiente e ilustração
+            Container(
+              height: topContainerHeight,
+              width: availableWidth,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(
+                    availableWidth * 0.3,
+                  ), // Bordas responsivas
+                  bottomRight: Radius.circular(availableWidth * 0.3),
+                ),
               ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(150),
-                bottomRight: Radius.circular(150),
+              child: Center(
+                child: Image.asset(
+                  imagePath,
+                  fit: BoxFit.contain,
+                  height:
+                      topContainerHeight * 0.8, // Imagem ocupa 80% do container
+                ),
               ),
             ),
-            child: Center(
-              child: Image.asset(
-                imagePath,
-                fit: BoxFit.cover,
-                height: screenHeight * 0.33,
-              ),
-            ),
-          ),
 
-          // Parte inferior com texto
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 25),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF212121),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Flexible(
-                    child: Text(
-                      description,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF666666),
-                        height: 1.4,
+            // Parte inferior com texto - flexível para diferentes tamanhos de tela
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal:
+                      availableWidth * 0.08, // Padding proporcional à largura
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: availableHeight * 0.03,
+                    ), // Espaçamento proporcional
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize:
+                            isPortrait
+                                ? availableWidth *
+                                    0.06 // Tamanho de fonte responsivo
+                                : availableWidth * 0.04,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF212121),
                       ),
                     ),
-                  ),
-                ],
+                    SizedBox(height: availableHeight * 0.01),
+                    Flexible(
+                      child: Text(
+                        description,
+                        style: TextStyle(
+                          fontSize:
+                              isPortrait
+                                  ? availableWidth *
+                                      0.04 // Tamanho de fonte responsivo
+                                  : availableWidth * 0.03,
+                          color: const Color(0xFF666666),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 }
@@ -242,6 +327,38 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscurePassword = true;
 
   @override
+  void initState() {
+    super.initState();
+    // Garantir modo tela cheia
+    _forceFullScreenMode();
+  }
+
+  void _forceFullScreenMode() {
+    if (Platform.isAndroid) {
+      // Android: edge-to-edge com barra de notificação visível
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.edgeToEdge,
+        overlays: [SystemUiOverlay.top],
+      );
+
+      // Estilo da barra de notificações
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          systemNavigationBarColor: Colors.transparent,
+        ),
+      );
+    } else {
+      // iOS e outros: manual com barra de status visível
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top],
+      );
+    }
+  }
+
+  @override
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
@@ -252,281 +369,611 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Forçar modo tela cheia a cada build
+    _forceFullScreenMode();
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Olá 👋',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF212121),
-                    ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 30), // Espaçamento adequado sem SafeArea
+                const Text(
+                  'Olá 👋',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF212121),
                   ),
-                  const Text(
-                    'Vamos criar sua conta?',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF212121),
-                    ),
+                ),
+                const Text(
+                  'Vamos criar sua conta?',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF212121),
                   ),
-                  const SizedBox(height: 30),
-                  // Campo Primeiro Nome
-                  TextFormField(
-                    controller: _firstNameController,
-                    decoration: InputDecoration(
-                      labelText: 'Primeiro Nome',
-                      prefixIcon: const Icon(Icons.person_outline),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                ),
+                const SizedBox(height: 30),
+                // Campo Primeiro Nome
+                TextFormField(
+                  controller: _firstNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Primeiro Nome',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, informe seu primeiro nome';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                // Campo Último Nome
+                TextFormField(
+                  controller: _lastNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Último Nome',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, informe seu último nome';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                // Campo Email
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, informe seu email';
+                    }
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                    ).hasMatch(value)) {
+                      return 'Por favor, informe um email válido';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                // Campo Senha
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Senha',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, informe seu primeiro nome';
-                      }
-                      return null;
-                    },
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15),
                   ),
-                  const SizedBox(height: 16),
-                  // Campo Último Nome
-                  TextFormField(
-                    controller: _lastNameController,
-                    decoration: InputDecoration(
-                      labelText: 'Último Nome',
-                      prefixIcon: const Icon(Icons.person_outline),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor, informe sua senha';
+                    }
+                    if (value.length < 6) {
+                      return 'A senha deve ter pelo menos 6 caracteres';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 10),
+                // Termos e condições
+                Text(
+                  'Criando sua conta você aceita nossos Termos de Privacidade e Termos de Uso',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 30),
+                // Botão Criar
+                Container(
+                  width: double.infinity,
+                  height: 55,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF8868CD).withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, informe seu último nome';
-                      }
-                      return null;
-                    },
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  // Campo Email
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: const Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        // Navegar para a tela de configuração de perfil
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileSetupScreen(),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
                     ),
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, informe seu email';
-                      }
-                      if (!RegExp(
-                        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                      ).hasMatch(value)) {
-                        return 'Por favor, informe um email válido';
-                      }
-                      return null;
-                    },
+                    child: const Text(
+                      'Criar',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  // Campo Senha
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    decoration: InputDecoration(
-                      labelText: 'Senha',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
+                ),
+                const SizedBox(height: 20),
+                // Divisor OU
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'Ou',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Botões de login social
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Google
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.g_mobiledata,
+                          size: 30,
+                          color: Colors.red,
                         ),
                         onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
+                          // Implementar login com Google
                         },
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
                     ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, informe sua senha';
-                      }
-                      if (value.length < 6) {
-                        return 'A senha deve ter pelo menos 6 caracteres';
-                      }
-                      return null;
+                    const SizedBox(width: 20),
+                    // Facebook
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.facebook,
+                          size: 30,
+                          color: Colors.blue,
+                        ),
+                        onPressed: () {
+                          // Implementar login com Facebook
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                // Link para login
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      // Navegar para a tela de login
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
                     },
-                  ),
-                  const SizedBox(height: 10),
-                  // Termos e condições
-                  Text(
-                    'Criando sua conta você aceita nossos Termos de Privacidade e Termos de Uso',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 30),
-                  // Botão Criar
-                  Container(
-                    width: double.infinity,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF8868CD).withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          // Navegar para a tela de configuração de perfil
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const ProfileSetupScreen(),
+                    child: RichText(
+                      text: const TextSpan(
+                        text: 'Já possui uma conta? ',
+                        style: TextStyle(color: Colors.black),
+                        children: [
+                          TextSpan(
+                            text: 'Login',
+                            style: TextStyle(
+                              color: Color(0xFF2B5AD5),
+                              fontWeight: FontWeight.bold,
                             ),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: Colors.transparent,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      child: const Text(
-                        'Criar',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  // Divisor OU
-                  Row(
-                    children: [
-                      const Expanded(child: Divider()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'Ou',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const Expanded(child: Divider()),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  // Botões de login social
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Google
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.g_mobiledata,
-                            size: 30,
-                            color: Colors.red,
-                          ),
-                          onPressed: () {
-                            // Implementar login com Google
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      // Facebook
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.facebook,
-                            size: 30,
-                            color: Colors.blue,
-                          ),
-                          onPressed: () {
-                            // Implementar login com Facebook
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                  // Link para login
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {
-                        // Navegar para a tela de login
-                      },
-                      child: RichText(
-                        text: const TextSpan(
-                          text: 'Já possui uma conta? ',
-                          style: TextStyle(color: Colors.black),
-                          children: [
-                            TextSpan(
-                              text: 'Login',
-                              style: TextStyle(
-                                color: Color(0xFF2B5AD5),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Garantir modo tela cheia
+    _forceFullScreenMode();
+  }
+
+  void _forceFullScreenMode() {
+    if (Platform.isAndroid) {
+      // Android: edge-to-edge com barra de notificação visível
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.edgeToEdge,
+        overlays: [SystemUiOverlay.top],
+      );
+
+      // Estilo da barra de notificações
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          systemNavigationBarColor: Colors.transparent,
+        ),
+      );
+    } else {
+      // iOS e outros: manual com barra de status visível
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: [SystemUiOverlay.top],
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Forçar o modo tela cheia a cada build
+    _forceFullScreenMode();
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Olá de novo 👋',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF212121),
+                        ),
+                      ),
+                      const Text(
+                        'Seja bem vindo',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF212121),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      // Campo Email
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 15,
+                          ),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, informe seu email';
+                          }
+                          if (!RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                          ).hasMatch(value)) {
+                            return 'Por favor, informe um email válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      // Campo Senha
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        decoration: InputDecoration(
+                          labelText: 'Senha',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 15,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, informe sua senha';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      // Link Esqueceu sua senha
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () {
+                            // Implementar recuperação de senha
+                          },
+                          child: const Text(
+                            'Esqueceu sua senha?',
+                            style: TextStyle(
+                              color: Color(0xFF2B5AD5),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      // Botão Entrar
+                      Container(
+                        width: double.infinity,
+                        height: 55,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF8868CD).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              // Extrai o nome de usuário do email (parte antes do @)
+                              String userEmail = _emailController.text.trim();
+                              String userName = userEmail.split('@').first;
+
+                              // Navegue para a tela de boas-vindas
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                  builder:
+                                      (context) =>
+                                          WelcomeScreen(userName: userName),
+                                ),
+                                (route) =>
+                                    false, // Remove todas as telas anteriores da pilha
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.transparent,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: const Text(
+                            'Entrar',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Divisor OU
+                      Row(
+                        children: [
+                          const Expanded(child: Divider()),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'Ou',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          const Expanded(child: Divider()),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      // Botões de login social
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Google
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.g_mobiledata,
+                                size: 30,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                // Implementar login com Google
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          // Facebook
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.facebook,
+                                size: 30,
+                                color: Colors.blue,
+                              ),
+                              onPressed: () {
+                                // Implementar login com Facebook
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+                      // Link para criar conta
+                      Center(
+                        child: GestureDetector(
+                          onTap: () {
+                            // Voltar para a tela de registro
+                            Navigator.of(context).pop();
+                          },
+                          child: RichText(
+                            text: const TextSpan(
+                              text: 'Não criou uma conta ainda? ',
+                              style: TextStyle(color: Colors.black),
+                              children: [
+                                TextSpan(
+                                  text: 'Criar agora',
+                                  style: TextStyle(
+                                    color: Color(0xFF2B5AD5),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
