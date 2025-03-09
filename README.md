@@ -19,10 +19,10 @@
 ---
 
 ## 🛠️ Tecnologias Utilizadas  
-- **Flutter:** Framework  
-- **Visual Studio Code:** IDE   
-- **Figma (UI/UX):** Design    
-- **Git + GitHub** Versionamento   
+- **Framework:** Flutter  
+- **IDE:** Visual Studio Code   
+- **Design:** Figma (UI/UX)    
+- **Versionamento** Git + GitHub   
 
 ---
 
@@ -30,7 +30,7 @@
 1. **Pré-requisitos:**  
    - Flutter SDK (versão 3.13.0 ou superior)  
    - Android Studio/VS Code  
-   - Kotlin (para módulo backend)  
+   - Kotlin (para alguns módulos backend)  
 
 2. **Clone o repositório:**  
    ```bash  
