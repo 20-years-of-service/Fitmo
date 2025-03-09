@@ -19,10 +19,10 @@
 ---
 
 ## 🛠️ Tecnologias Utilizadas  
-- **Flutter:** Flutter (Dart + HTML)  
+- **Flutter:** Framework  
 - **Visual Studio Code:** IDE   
-- **Design:** Figma (UI/UX)  
-- **Versionamento:** Git + GitHub  
+- **Figma (UI/UX):** Design    
+- **Git + GitHub** Versionamento   
 
 ---
 
