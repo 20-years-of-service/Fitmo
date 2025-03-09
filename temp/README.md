@@ -1,4 +1,4 @@
-# fitmo
+# fitmo_logo
 
 A new Flutter project.
 
