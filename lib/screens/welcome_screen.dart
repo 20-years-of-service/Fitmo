@@ -70,147 +70,147 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final double availableHeight = constraints.maxHeight;
-          final double availableWidth = constraints.maxWidth;
-          final bool isPortrait = availableHeight > availableWidth;
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double availableHeight = constraints.maxHeight;
+            final double availableWidth = constraints.maxWidth;
+            final bool isPortrait = availableHeight > availableWidth;
 
-          // Calculamos tamanhos responsivos baseados na tela
-          final double horizontalPadding = availableWidth * 0.06;
-          final double titleFontSize =
-              isPortrait ? availableWidth * 0.07 : availableWidth * 0.05;
-          final double subtitleFontSize =
-              isPortrait ? availableWidth * 0.045 : availableWidth * 0.035;
-          final double buttonHeight =
-              isPortrait ? availableHeight * 0.07 : availableHeight * 0.1;
-          final double buttonFontSize =
-              isPortrait ? availableWidth * 0.05 : availableWidth * 0.04;
-          final double bottomSpacing = availableHeight * 0.04;
+            // Calculamos tamanhos responsivos baseados na tela
+            final double horizontalPadding = availableWidth * 0.06;
+            final double titleFontSize =
+                isPortrait ? availableWidth * 0.07 : availableWidth * 0.05;
+            final double subtitleFontSize =
+                isPortrait ? availableWidth * 0.045 : availableWidth * 0.035;
+            final double buttonHeight =
+                isPortrait ? availableHeight * 0.07 : availableHeight * 0.1;
+            final double buttonFontSize =
+                isPortrait ? availableWidth * 0.05 : availableWidth * 0.04;
+            final double bottomSpacing = availableHeight * 0.04;
 
-          return Container(
-            width: double.infinity,
-            height: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                // Imagem central com tamanho responsivo
-                Expanded(
-                  flex: 6,
-                  child: Center(
-                    child: Container(
-                      constraints: BoxConstraints(
-                        maxHeight:
-                            isPortrait
-                                ? availableHeight * 0.4
-                                : availableHeight * 0.6,
-                        maxWidth: availableWidth * 0.8,
-                      ),
-                      child: Image.asset(
-                        'assets/images/sejabemvindo.png',
-                        fit: BoxFit.contain,
+            return Container(
+              width: double.infinity,
+              height: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Imagem central com tamanho responsivo
+                  Expanded(
+                    flex: 6,
+                    child: Center(
+                      child: Container(
+                        constraints: BoxConstraints(
+                          maxHeight: isPortrait
+                              ? availableHeight * 0.4
+                              : availableHeight * 0.6,
+                          maxWidth: availableWidth * 0.8,
+                        ),
+                        child: Image.asset(
+                          'assets/images/sejabemvindo.png',
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                // Espaçamento flexível
-                SizedBox(height: availableHeight * 0.02),
+                  // Espaçamento flexível
+                  SizedBox(height: availableHeight * 0.02),
 
-                // Seção de texto centralizada
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Título com nome do usuário
-                    Text(
-                      'Bem vindo, ${widget.userName}',
-                      style: TextStyle(
-                        fontSize: titleFontSize,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF212121),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: availableHeight * 0.02),
-                    // Subtítulo
-                    Container(
-                      constraints: BoxConstraints(
-                        maxWidth: availableWidth * 0.8,
-                      ),
-                      child: Text(
-                        'Agora está tudo pronto. Vamos alcançar seus objetivos juntos!',
+                  // Seção de texto centralizada
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Título com nome do usuário
+                      Text(
+                        'Bem vindo, ${widget.userName}',
                         style: TextStyle(
-                          fontSize: subtitleFontSize,
-                          color: Color(0xFF666666),
-                          height: 1.4,
+                          fontSize: titleFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF212121),
                         ),
                         textAlign: TextAlign.center,
                       ),
-                    ),
-                  ],
-                ),
-
-                // Espaçamento flexível
-                SizedBox(height: availableHeight * 0.04),
-
-                // Botão "Tela inicial" responsivo
-                Container(
-                  width: double.infinity,
-                  height: buttonHeight,
-                  constraints: BoxConstraints(maxWidth: availableWidth * 0.8),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(buttonHeight / 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF8868CD).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+                      SizedBox(height: availableHeight * 0.02),
+                      // Subtítulo
+                      Container(
+                        constraints: BoxConstraints(
+                          maxWidth: availableWidth * 0.8,
+                        ),
+                        child: Text(
+                          'Agora está tudo pronto. Vamos alcançar seus objetivos juntos!',
+                          style: TextStyle(
+                            fontSize: subtitleFontSize,
+                            color: Color(0xFF666666),
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ],
                   ),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Navegar para a tela inicial do app
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  HomeScreen(userName: widget.userName),
-                        ),
-                        (route) =>
-                            false, // Remove todas as telas anteriores da pilha
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(buttonHeight / 2),
+
+                  // Espaçamento flexível
+                  SizedBox(height: availableHeight * 0.04),
+
+                  // Botão "Tela inicial" responsivo
+                  Container(
+                    width: double.infinity,
+                    height: buttonHeight,
+                    constraints: BoxConstraints(maxWidth: availableWidth * 0.8),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
                       ),
+                      borderRadius: BorderRadius.circular(buttonHeight / 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF8868CD).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      'Tela inicial',
-                      style: TextStyle(
-                        fontSize: buttonFontSize,
-                        fontWeight: FontWeight.bold,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Navegar para a tela inicial do app
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                HomeScreen(userName: widget.userName),
+                          ),
+                          (route) =>
+                              false, // Remove todas as telas anteriores da pilha
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(buttonHeight / 2),
+                        ),
+                      ),
+                      child: Text(
+                        'Tela inicial',
+                        style: TextStyle(
+                          fontSize: buttonFontSize,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                // Espaço inferior para equilíbrio
-                SizedBox(height: bottomSpacing),
-              ],
-            ),
-          );
-        },
+                  // Espaço inferior para equilíbrio
+                  SizedBox(height: bottomSpacing),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

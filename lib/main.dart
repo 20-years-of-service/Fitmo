@@ -71,20 +71,16 @@ class MyApp extends StatelessWidget {
         ),
       ),
       builder: (context, child) {
-        // Este wrapper garante que a configuração de tela cheia seja aplicada a todo o app
-        return MediaQuery(
-          // Remove o padding superior para garantir tela cheia
-          data: MediaQuery.of(context).copyWith(padding: EdgeInsets.zero),
-          child: AnnotatedRegion<SystemUiOverlayStyle>(
-            value: const SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              systemNavigationBarColor: Colors.transparent,
-              systemNavigationBarDividerColor: Colors.transparent,
-              statusBarIconBrightness: Brightness.light,
-              systemNavigationBarIconBrightness: Brightness.light,
-            ),
-            child: child!,
+        // Removemos a configuração que poderia remover o padding superior
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: Colors.transparent,
+            systemNavigationBarDividerColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            systemNavigationBarIconBrightness: Brightness.light,
           ),
+          child: child!,
         );
       },
       home: const SplashScreen(),
@@ -165,34 +161,37 @@ class _SplashScreenState extends State<SplashScreen>
     // Aplica novamente a tela cheia em cada rebuild
     _forceFullScreenMode();
 
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      color: Colors.white,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 100,
-              height: 100,
-              child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Fitmo',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF212121),
+    return SafeArea(
+      child: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 100,
+                height: 100,
+                child:
+                    Image.asset('assets/images/logo.png', fit: BoxFit.contain),
               ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Cada saúde no seu ritmo',
-              style: TextStyle(fontSize: 16, color: Color(0xFF666666)),
-            ),
-          ],
+              const SizedBox(height: 16),
+              const Text(
+                'Fitmo',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF212121),
+                ),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'Cada saúde no seu ritmo',
+                style: TextStyle(fontSize: 16, color: Color(0xFF666666)),
+              ),
+            ],
+          ),
         ),
       ),
     );

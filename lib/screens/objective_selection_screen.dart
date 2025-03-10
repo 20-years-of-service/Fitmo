@@ -86,179 +86,179 @@ class _ObjectiveSelectionScreenState extends State<ObjectiveSelectionScreen>
 
     return Scaffold(
       backgroundColor: Color(0xFFFFF5F5),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final double availableHeight = constraints.maxHeight;
-          final double availableWidth = constraints.maxWidth;
-          final bool isPortrait = availableHeight > availableWidth;
-          // Define tamanhos responsivos
-          final double headerPaddingTop = availableHeight * 0.04;
-          final double headerPaddingBottom = availableHeight * 0.02;
-          final double titleFontSize =
-              isPortrait ? availableWidth * 0.06 : availableWidth * 0.04;
-          final double subtitleFontSize =
-              isPortrait ? availableWidth * 0.04 : availableWidth * 0.03;
-          final double buttonHeight = availableHeight * 0.07;
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double availableHeight = constraints.maxHeight;
+            final double availableWidth = constraints.maxWidth;
+            final bool isPortrait = availableHeight > availableWidth;
+            // Define tamanhos responsivos
+            final double headerPaddingTop = availableHeight * 0.04;
+            final double headerPaddingBottom = availableHeight * 0.02;
+            final double titleFontSize =
+                isPortrait ? availableWidth * 0.06 : availableWidth * 0.04;
+            final double subtitleFontSize =
+                isPortrait ? availableWidth * 0.04 : availableWidth * 0.03;
+            final double buttonHeight = availableHeight * 0.07;
 
-          return Column(
-            children: [
-              // Cabeçalho
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  availableWidth * 0.04,
-                  headerPaddingTop,
-                  availableWidth * 0.04,
-                  headerPaddingBottom,
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'Qual é seu objetivo?',
-                      style: TextStyle(
-                        fontSize: titleFontSize,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF212121),
+            return Column(
+              children: [
+                // Cabeçalho
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    availableWidth * 0.04,
+                    headerPaddingTop,
+                    availableWidth * 0.04,
+                    headerPaddingBottom,
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Qual é seu objetivo?',
+                        style: TextStyle(
+                          fontSize: titleFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF212121),
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: availableHeight * 0.01),
-                    Text(
-                      'Isso nos ajudará a escolher o melhor programa para você',
-                      style: TextStyle(
-                        fontSize: subtitleFontSize,
-                        color: Color(0xFF666666),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-              // Cartões deslizáveis - Expandimos para ocupar espaço disponível
-              Expanded(
-                flex: 9,
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: _objectives.length,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _currentPage = index;
-                    });
-                    // Ativar animação das bolinhas
-                    _animationController.reset();
-                    _animationController.forward();
-                  },
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: availableWidth * 0.04,
-                        vertical: availableHeight * 0.01,
-                      ),
-                      child: _objectives[index],
-                    );
-                  },
-                ),
-              ),
-
-              // Indicadores de página (bolinhas) fora do cartão
-              Padding(
-                padding: EdgeInsets.only(bottom: availableHeight * 0.02),
-                child: AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, child) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(_objectives.length, (index) {
-                        final isCurrentPage = _currentPage == index;
-                        final scale =
-                            isCurrentPage ? _dotAnimations[index].value : 1.0;
-                        final dotSize =
-                            isCurrentPage
-                                ? availableWidth * 0.025
-                                : availableWidth * 0.02;
-
-                        return Transform.scale(
-                          scale: scale,
-                          child: Container(
-                            margin: EdgeInsets.symmetric(
-                              horizontal: availableWidth * 0.01,
-                            ),
-                            width: dotSize,
-                            height: dotSize,
-                            decoration: BoxDecoration(
-                              color:
-                                  isCurrentPage
-                                      ? const Color(0xFF1976D2)
-                                      : Colors.grey.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(dotSize / 2),
-                            ),
-                          ),
-                        );
-                      }),
-                    );
-                  },
-                ),
-              ),
-
-              // Botão confirmar
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  availableWidth * 0.04,
-                  0,
-                  availableWidth * 0.04,
-                  availableHeight * 0.04,
-                ),
-                child: Container(
-                  width: double.infinity,
-                  height: buttonHeight,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(buttonHeight / 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF8868CD).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+                      SizedBox(height: availableHeight * 0.01),
+                      Text(
+                        'Isso nos ajudará a escolher o melhor programa para você',
+                        style: TextStyle(
+                          fontSize: subtitleFontSize,
+                          color: Color(0xFF666666),
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Navegar para a tela de boas-vindas
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder:
-                              (context) => const WelcomeScreen(
-                                userName:
-                                    '{Usuario}', // Este valor pode ser substituído pelo nome real do usuário
-                              ),
+                ),
+                // Cartões deslizáveis - Expandimos para ocupar espaço disponível
+                Expanded(
+                  flex: 9,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: _objectives.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index;
+                      });
+                      // Ativar animação das bolinhas
+                      _animationController.reset();
+                      _animationController.forward();
+                    },
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: availableWidth * 0.04,
+                          vertical: availableHeight * 0.01,
                         ),
+                        child: _objectives[index],
                       );
                     },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(buttonHeight / 2),
+                  ),
+                ),
+
+                // Indicadores de página (bolinhas) fora do cartão
+                Padding(
+                  padding: EdgeInsets.only(bottom: availableHeight * 0.02),
+                  child: AnimatedBuilder(
+                    animation: _animationController,
+                    builder: (context, child) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(_objectives.length, (index) {
+                          final isCurrentPage = _currentPage == index;
+                          final scale =
+                              isCurrentPage ? _dotAnimations[index].value : 1.0;
+                          final dotSize = isCurrentPage
+                              ? availableWidth * 0.025
+                              : availableWidth * 0.02;
+
+                          return Transform.scale(
+                            scale: scale,
+                            child: Container(
+                              margin: EdgeInsets.symmetric(
+                                horizontal: availableWidth * 0.01,
+                              ),
+                              width: dotSize,
+                              height: dotSize,
+                              decoration: BoxDecoration(
+                                color: isCurrentPage
+                                    ? const Color(0xFF1976D2)
+                                    : Colors.grey.withOpacity(0.3),
+                                borderRadius:
+                                    BorderRadius.circular(dotSize / 2),
+                              ),
+                            ),
+                          );
+                        }),
+                      );
+                    },
+                  ),
+                ),
+
+                // Botão confirmar
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    availableWidth * 0.04,
+                    0,
+                    availableWidth * 0.04,
+                    availableHeight * 0.04,
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    height: buttonHeight,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
                       ),
+                      borderRadius: BorderRadius.circular(buttonHeight / 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF8868CD).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                      'Confirmar',
-                      style: TextStyle(
-                        fontSize: availableWidth * 0.045,
-                        fontWeight: FontWeight.bold,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Navegar para a tela de boas-vindas
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const WelcomeScreen(
+                              userName:
+                                  '{Usuario}', // Este valor pode ser substituído pelo nome real do usuário
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(buttonHeight / 2),
+                        ),
+                      ),
+                      child: Text(
+                        'Confirmar',
+                        style: TextStyle(
+                          fontSize: availableWidth * 0.045,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

@@ -48,7 +48,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
+          statusBarIconBrightness: Brightness
+              .light, // Ícones claros para melhor visibilidade sobre o fundo colorido
           systemNavigationBarColor: Colors.transparent,
           systemNavigationBarDividerColor: Colors.transparent,
         ),
@@ -58,6 +59,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       SystemChrome.setEnabledSystemUIMode(
         SystemUiMode.manual,
         overlays: [SystemUiOverlay.top], // Mantém a barra de status visível
+      );
+
+      // Também ajustamos os ícones para iOS
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarBrightness:
+              Brightness.dark, // iOS usa o inverso (dark = ícones claros)
+        ),
       );
     }
   }
@@ -75,93 +85,117 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           final double availableWidth = constraints.maxWidth;
           final bool isPortrait = availableHeight > availableWidth;
 
-          // Tamanhos responsivos para diferentes proporções de tela
-          final double appBarHeight =
-              isPortrait ? availableHeight * 0.08 : availableHeight * 0.12;
-          final double appBarPadding = availableWidth * 0.04;
-          final double appBarFontSize =
-              isPortrait ? availableWidth * 0.06 : availableWidth * 0.04;
-          final double iconSize =
-              isPortrait ? availableWidth * 0.07 : availableWidth * 0.05;
-          final double contentPadding = availableWidth * 0.06;
-          final double mainIconSize =
-              isPortrait ? availableWidth * 0.2 : availableWidth * 0.15;
-          final double titleFontSize =
-              isPortrait ? availableWidth * 0.06 : availableWidth * 0.04;
-          final double subtitleFontSize =
-              isPortrait ? availableWidth * 0.045 : availableWidth * 0.035;
-
-          return Column(
+          return Stack(
             children: [
-              // AppBar personalizada responsiva
-              Container(
-                height: appBarHeight,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: appBarPadding),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Fitmo',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          fontSize: appBarFontSize,
-                        ),
-                      ),
-                      const Spacer(),
-                      // Ícones na AppBar
-                      IconButton(
-                        icon: Icon(
-                          Icons.notifications_outlined,
-                          color: Colors.white,
-                          size: iconSize,
-                        ),
-                        onPressed: () {},
-                      ),
-                    ],
+              // Fundo gradiente que se estende por trás da barra de notificações
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: MediaQuery.of(context).padding.top +
+                    (isPortrait
+                        ? availableHeight * 0.08
+                        : availableHeight * 0.12),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
                   ),
                 ),
               ),
-              // Conteúdo da tela - adaptativo para diferentes tamanhos
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: contentPadding),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.fitness_center,
-                        size: mainIconSize,
-                        color: Color(0xFF2B5AD5),
-                      ),
-                      SizedBox(height: availableHeight * 0.04),
-                      Text(
-                        'Bem-vindo à tela inicial, ${widget.userName}!',
-                        style: TextStyle(
-                          fontSize: titleFontSize,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF212121),
+              // Conteúdo que respeita a área segura
+              SafeArea(
+                child: Column(
+                  children: [
+                    // AppBar personalizada responsiva
+                    Container(
+                      height: isPortrait
+                          ? availableHeight * 0.08
+                          : availableHeight * 0.12,
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: availableHeight * 0.02),
-                      Text(
-                        'Aqui será o dashboard principal do aplicativo.',
-                        style: TextStyle(
-                          fontSize: subtitleFontSize,
-                          color: Color(0xFF666666),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: availableWidth * 0.04),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Fitmo',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: isPortrait
+                                    ? availableWidth * 0.06
+                                    : availableWidth * 0.04,
+                              ),
+                            ),
+                            const Spacer(),
+                            // Ícones na AppBar
+                            IconButton(
+                              icon: Icon(
+                                Icons.notifications_outlined,
+                                color: Colors.white,
+                                size: isPortrait
+                                    ? availableWidth * 0.07
+                                    : availableWidth * 0.05,
+                              ),
+                              onPressed: () {},
+                            ),
+                          ],
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                    ],
-                  ),
+                    ),
+                    // Conteúdo da tela - adaptativo para diferentes tamanhos
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: availableWidth * 0.06),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.fitness_center,
+                              size: isPortrait
+                                  ? availableWidth * 0.2
+                                  : availableWidth * 0.15,
+                              color: Color(0xFF2B5AD5),
+                            ),
+                            SizedBox(height: availableHeight * 0.04),
+                            Text(
+                              'Bem-vindo à tela inicial, ${widget.userName}!',
+                              style: TextStyle(
+                                fontSize: isPortrait
+                                    ? availableWidth * 0.06
+                                    : availableWidth * 0.04,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF212121),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: availableHeight * 0.02),
+                            Text(
+                              'Aqui será o dashboard principal do aplicativo.',
+                              style: TextStyle(
+                                fontSize: isPortrait
+                                    ? availableWidth * 0.045
+                                    : availableWidth * 0.035,
+                                color: Color(0xFF666666),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

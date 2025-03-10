@@ -80,7 +80,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       SystemChrome.setSystemUIOverlayStyle(
         const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
+          // Ícones claros para melhor visibilidade sobre o fundo colorido
+          statusBarIconBrightness: Brightness.light,
           systemNavigationBarColor: Colors.transparent,
           systemNavigationBarDividerColor: Colors.transparent,
         ),
@@ -90,6 +91,15 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       SystemChrome.setEnabledSystemUIMode(
         SystemUiMode.manual,
         overlays: [SystemUiOverlay.top], // Mantém a barra de status visível
+      );
+
+      // Também ajustamos os ícones para iOS
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarBrightness:
+              Brightness.dark, // iOS usa o inverso (dark = ícones claros)
+        ),
       );
     }
   }
@@ -115,27 +125,26 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        // O SafeArea com bottom: false garante que o conteúdo use o espaço da barra de navegação
-        // mas respeite áreas como notches ou câmeras no topo da tela
-        bottom: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: _pages.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  return _pages[index];
-                },
-              ),
+      body: Column(
+        children: [
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: _pages.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              itemBuilder: (context, index) {
+                return _pages[index];
+              },
             ),
-            Padding(
+          ),
+          // SafeArea apenas para a navegação inferior
+          SafeArea(
+            top: false, // Não precisamos de padding no topo aqui
+            child: Padding(
               padding: const EdgeInsets.only(left: 30, right: 30, bottom: 30),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -149,10 +158,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         width: _currentPage == index ? 10 : 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color:
-                              _currentPage == index
-                                  ? const Color(0xFF1976D2)
-                                  : Colors.grey.withOpacity(0.3),
+                          color: _currentPage == index
+                              ? const Color(0xFF1976D2)
+                              : Colors.grey.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -162,40 +170,40 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   // Botão de próximo (só aparece na última tela)
                   _currentPage == _pages.length - 1
                       ? Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF8868CD).withOpacity(0.4),
-                              blurRadius: 8,
-                              spreadRadius: 1,
-                              offset: const Offset(0, 2),
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                          ],
-                        ),
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          icon: const Icon(
-                            Icons.arrow_forward,
-                            color: Colors.white,
-                            size: 20,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF8868CD).withOpacity(0.4),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                          onPressed: _goToNextPage,
-                        ),
-                      )
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(
+                              Icons.arrow_forward,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            onPressed: _goToNextPage,
+                          ),
+                        )
                       : const SizedBox(width: 44),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -224,85 +232,97 @@ class OnboardingPage extends StatelessWidget {
 
         // Ajustamos proporcionalmente baseado na orientação e tamanho da tela
         final bool isPortrait = availableHeight > availableWidth;
-        final double topContainerHeight =
-            isPortrait
-                ? availableHeight *
-                    0.45 // 45% da altura em retrato
-                : availableHeight * 0.55; // 55% da altura em paisagem
+        final double topContainerHeight = isPortrait
+            ? availableHeight * 0.45 // 45% da altura em retrato
+            : availableHeight * 0.55; // 55% da altura em paisagem
 
-        return Column(
+        // Obtém o tamanho da barra de status para estender o gradient corretamente
+        final statusBarHeight = MediaQuery.of(context).padding.top;
+
+        return Stack(
           children: [
-            // Parte superior com gradiente e ilustração
-            Container(
-              height: topContainerHeight,
-              width: availableWidth,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(
-                    availableWidth * 0.3,
-                  ), // Bordas responsivas
-                  bottomRight: Radius.circular(availableWidth * 0.3),
-                ),
-              ),
-              child: Center(
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.contain,
-                  height:
-                      topContainerHeight * 0.8, // Imagem ocupa 80% do container
+            // Background que se estende por trás da status bar
+            Positioned(
+              top: -statusBarHeight, // Move para trás da barra de status
+              left: 0,
+              right: 0,
+              height: topContainerHeight + statusBarHeight,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(
+                      availableWidth * 0.3,
+                    ),
+                    bottomRight: Radius.circular(availableWidth * 0.3),
+                  ),
                 ),
               ),
             ),
+            // Conteúdo que respeita a área segura
+            Column(
+              children: [
+                // Container para a imagem
+                Container(
+                  height: topContainerHeight,
+                  width: availableWidth,
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: statusBarHeight * 0.5),
+                      child: Image.asset(
+                        imagePath,
+                        fit: BoxFit.contain,
+                        height: topContainerHeight * 0.8,
+                      ),
+                    ),
+                  ),
+                ),
 
-            // Parte inferior com texto - flexível para diferentes tamanhos de tela
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal:
-                      availableWidth * 0.08, // Padding proporcional à largura
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: availableHeight * 0.03,
-                    ), // Espaçamento proporcional
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize:
-                            isPortrait
-                                ? availableWidth *
-                                    0.06 // Tamanho de fonte responsivo
-                                : availableWidth * 0.04,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF212121),
-                      ),
+                // Parte inferior com texto - flexível para diferentes tamanhos de tela
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: availableWidth * 0.08,
                     ),
-                    SizedBox(height: availableHeight * 0.01),
-                    Flexible(
-                      child: Text(
-                        description,
-                        style: TextStyle(
-                          fontSize:
-                              isPortrait
-                                  ? availableWidth *
-                                      0.04 // Tamanho de fonte responsivo
-                                  : availableWidth * 0.03,
-                          color: const Color(0xFF666666),
-                          height: 1.4,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          height: availableHeight * 0.03,
                         ),
-                      ),
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: isPortrait
+                                ? availableWidth * 0.06
+                                : availableWidth * 0.04,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF212121),
+                          ),
+                        ),
+                        SizedBox(height: availableHeight * 0.01),
+                        Flexible(
+                          child: Text(
+                            description,
+                            style: TextStyle(
+                              fontSize: isPortrait
+                                  ? availableWidth * 0.04
+                                  : availableWidth * 0.03,
+                              color: const Color(0xFF666666),
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         );
@@ -850,9 +870,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               // Navegue para a tela de boas-vindas
                               Navigator.of(context).pushAndRemoveUntil(
                                 MaterialPageRoute(
-                                  builder:
-                                      (context) =>
-                                          WelcomeScreen(userName: userName),
+                                  builder: (context) =>
+                                      WelcomeScreen(userName: userName),
                                 ),
                                 (route) =>
                                     false, // Remove todas as telas anteriores da pilha
