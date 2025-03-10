@@ -327,15 +327,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 : const Color(0xFF212121),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        // Idade
-                        Text(
-                          'de',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isDarkMode ? Colors.grey[400] : Colors.grey,
-                          ),
-                        ),
                         const SizedBox(height: 16),
                         // Botão de editar
                         ElevatedButton(
