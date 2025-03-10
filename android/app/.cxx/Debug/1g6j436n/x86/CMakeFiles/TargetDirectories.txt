@@ -1,0 +1,2 @@
+C:/Users/LuizF/OneDrive/Documentos/GitHub/Fitmo/android/app/.cxx/Debug/1g6j436n/x86/CMakeFiles/edit_cache.dir
+C:/Users/LuizF/OneDrive/Documentos/GitHub/Fitmo/android/app/.cxx/Debug/1g6j436n/x86/CMakeFiles/rebuild_cache.dir

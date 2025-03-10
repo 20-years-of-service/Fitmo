@@ -1,0 +1,1 @@
+ C:\\Users\\LuizF\\OneDrive\\Documentos\\GitHub\\Fitmo\\.dart_tool\\flutter_build\\ace54b2f527b1b036bd88a91e9bf2d76\\native_assets.json: 
