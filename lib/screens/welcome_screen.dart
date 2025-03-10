@@ -5,8 +5,13 @@ import 'home_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   final String userName;
+  final String? userEmail;
 
-  const WelcomeScreen({super.key, required this.userName});
+  const WelcomeScreen({
+    super.key,
+    required this.userName,
+    this.userEmail,
+  });
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -179,8 +184,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         // Navegar para a tela inicial do app
                         Navigator.of(context).pushAndRemoveUntil(
                           MaterialPageRoute(
-                            builder: (context) =>
-                                HomeScreen(userName: widget.userName),
+                            builder: (context) => HomeScreen(
+                              userName: widget.userName,
+                              userEmail: widget.userEmail,
+                            ),
                           ),
                           (route) =>
                               false, // Remove todas as telas anteriores da pilha

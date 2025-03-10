@@ -11,8 +11,13 @@ import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
+  final String? userEmail;
 
-  const HomeScreen({super.key, required this.userName});
+  const HomeScreen({
+    super.key,
+    required this.userName,
+    this.userEmail,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -49,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       _buildHomeContent(),
       const WorkoutScreen(), // Usando a nova tela de treinos
       const SettingsScreen(), // Adicionando a tela de configurações
-      const ProfileScreen(), // Adicionando a tela de perfil
+      ProfileScreen(userEmail: widget.userEmail),
     ];
     // Forçar modo tela cheia
     _forceFullScreenMode();

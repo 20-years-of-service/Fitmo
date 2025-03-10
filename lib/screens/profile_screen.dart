@@ -3,9 +3,13 @@ import 'package:flutter/services.dart';
 import 'dart:io' show Platform;
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
+import '../models/user_model.dart';
+import '../services/user_service.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final String? userEmail; // Email do usuário logado
+
+  const ProfileScreen({super.key, this.userEmail});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -13,17 +17,70 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen>
     with WidgetsBindingObserver {
-  // Dados simulados do usuário - em um app real, estes viriam de um banco de dados ou API
-  final String userName = "Stephanie Leite";
-  final String userAge = "22";
-  final String userHeight = "165cm";
-  final String userWeight = "65kg";
+  // Estado para armazenar os dados do usuário
+  UserModel? _userData;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  // Dados padrão caso não consiga carregar
+  String _userName = "Usuário";
+  String _userGender = "Não informado";
+  String _userAge = "0";
+  String _userHeight = "0cm";
+  String _userWeight = "0kg";
+  String _userObjective = "Não definido";
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _forceFullScreenMode();
+    _loadUserData();
+  }
+
+  // Método para carregar dados do usuário do Hive
+  Future<void> _loadUserData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Inicializar o Hive
+      await UserService.init();
+
+      // Buscar o usuário - usando o email do widget ou o último usuário se não fornecido
+      UserModel? user;
+      if (widget.userEmail != null) {
+        user = UserService.getUserByEmail(widget.userEmail!);
+      } else {
+        // Aqui você pode implementar lógica para buscar o último usuário logado
+        // Por enquanto, deixamos um placeholder para debugging
+        final testEmail = "email@exemplo.com"; // Email de teste
+        user = UserService.getUserByEmail(testEmail);
+      }
+
+      // Atualizar o estado com os dados do usuário
+      setState(() {
+        _userData = user;
+
+        if (user != null) {
+          _userName = "${user.firstName} ${user.lastName}";
+          _userGender = user.gender ?? "Não informado";
+          _userAge = user.age?.toString() ?? "0";
+          _userHeight = user.height != null ? "${user.height}cm" : "0cm";
+          _userWeight = user.weight != null ? "${user.weight}kg" : "0kg";
+          _userObjective = user.objective ?? "Não definido";
+        }
+
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Erro ao carregar dados: ${e.toString()}";
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -231,6 +288,68 @@ class _ProfileScreenState extends State<ProfileScreen>
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
 
+    // Se estiver carregando, mostrar indicador de carregamento
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor:
+            isDarkMode ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
+        body: SafeArea(
+          child: Center(
+            child: CircularProgressIndicator(
+              color: isDarkMode
+                  ? ThemeProvider.lightPurple
+                  : const Color(0xFF6677CC),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Se ocorrer um erro, mostrar mensagem de erro
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor:
+            isDarkMode ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: Colors.red,
+                    size: 60,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    _errorMessage!,
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _loadUserData,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isDarkMode
+                          ? ThemeProvider.lightPurple
+                          : const Color(0xFF6677CC),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text('Tentar novamente'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor:
           isDarkMode ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
@@ -287,7 +406,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   Center(
                     child: Column(
                       children: [
-                        // Foto de perfil
+                        // Foto de perfil ou iniciais
                         Container(
                           width: 80,
                           height: 80,
@@ -305,20 +424,31 @@ class _ProfileScreenState extends State<ProfileScreen>
                           ),
                           child: ClipOval(
                             child: Center(
-                              child: Icon(
-                                Icons.person,
-                                size: 40,
-                                color: isDarkMode
-                                    ? const Color(0xFF8899FF)
-                                    : const Color(0xFF6677CC),
-                              ),
+                              child: _userData != null
+                                  ? Text(
+                                      "${_userData!.firstName[0]}${_userData!.lastName[0]}",
+                                      style: TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDarkMode
+                                            ? const Color(0xFF8899FF)
+                                            : const Color(0xFF6677CC),
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.person,
+                                      size: 40,
+                                      color: isDarkMode
+                                          ? const Color(0xFF8899FF)
+                                          : const Color(0xFF6677CC),
+                                    ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 12),
                         // Nome do usuário
                         Text(
-                          userName,
+                          _userName,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -327,11 +457,25 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 : const Color(0xFF212121),
                           ),
                         ),
+                        if (_userData != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Text(
+                              _userData!.email,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDarkMode
+                                    ? Colors.grey[400]
+                                    : Colors.grey[600],
+                              ),
+                            ),
+                          ),
                         const SizedBox(height: 16),
                         // Botão de editar
                         ElevatedButton(
                           onPressed: () {
                             // Navegação para tela de edição de perfil
+                            // Aqui você pode implementar a navegação para a tela de edição
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: isDarkMode
@@ -363,11 +507,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildBioCard(userHeight, isDarkMode),
-                      _buildBioCard(userWeight, isDarkMode),
-                      _buildBioCard('${userAge}an', isDarkMode),
+                      _buildBioCard(_userHeight, isDarkMode,
+                          icon: Icons.height),
+                      _buildBioCard(_userWeight, isDarkMode,
+                          icon: Icons.monitor_weight_outlined),
+                      _buildBioCard('${_userAge}an', isDarkMode,
+                          icon: Icons.calendar_today),
                     ],
                   ),
+
+                  // Objetivo de Fitness
+                  const SizedBox(height: 24),
+                  _buildObjectiveSection(isDarkMode),
 
                   const SizedBox(height: 32),
 
@@ -446,30 +597,155 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildBioCard(String value, bool isDarkMode) {
+  // Novo método para construir a seção de objetivo
+  Widget _buildObjectiveSection(bool isDarkMode) {
+    if (_userData == null || _userData!.objective == null) {
+      return Container(); // Retorna um container vazio se não houver objetivo
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Objetivo de Fitness',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : const Color(0xFF212121),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: isDarkMode
+                          ? ThemeProvider.lightPurple.withOpacity(0.2)
+                          : const Color(0xFF6677CC).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.fitness_center,
+                      color: isDarkMode
+                          ? ThemeProvider.lightPurple
+                          : const Color(0xFF6677CC),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _userData!.objective!,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color:
+                            isDarkMode ? Colors.white : const Color(0xFF212121),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (_userData!.secondaryObjectives != null &&
+                  _userData!.secondaryObjectives!.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Objetivos secundários:',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ..._userData!.secondaryObjectives!.map((objective) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle_outline,
+                            size: 18,
+                            color: isDarkMode
+                                ? ThemeProvider.lightPurple
+                                : const Color(0xFF6677CC),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              objective,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDarkMode
+                                    ? Colors.grey[300]
+                                    : Colors.grey[700],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Método atualizado para incluir ícones nos cards biométricos
+  Widget _buildBioCard(String text, bool isDarkMode, {IconData? icon}) {
     return Container(
-      width: 80,
-      height: 80,
+      width: 90,
+      height: 90,
       decoration: BoxDecoration(
         color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: const Offset(0, 5),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: isDarkMode ? Colors.white : const Color(0xFF212121),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (icon != null)
+            Icon(
+              icon,
+              color: isDarkMode
+                  ? ThemeProvider.lightPurple
+                  : const Color(0xFF6677CC),
+              size: 24,
+            ),
+          if (icon != null) const SizedBox(height: 8),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : const Color(0xFF212121),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'welcome_screen.dart';
+import '../models/user_model.dart';
+import '../services/user_service.dart';
 
 class ObjectiveSelectionScreen extends StatefulWidget {
-  const ObjectiveSelectionScreen({super.key});
+  final UserModel tempUser;
+
+  const ObjectiveSelectionScreen({
+    super.key,
+    required this.tempUser,
+  });
 
   @override
   State<ObjectiveSelectionScreen> createState() =>
@@ -16,6 +23,8 @@ class _ObjectiveSelectionScreenState extends State<ObjectiveSelectionScreen>
   int _currentPage = 0;
   late AnimationController _animationController;
   late List<Animation<double>> _dotAnimations;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   final List<ObjectiveCard> _objectives = [
     const ObjectiveCard(
@@ -38,6 +47,9 @@ class _ObjectiveSelectionScreenState extends State<ObjectiveSelectionScreen>
     ),
   ];
 
+  // Lista para armazenar os objetivos selecionados
+  final List<String> _selectedObjectives = [];
+
   @override
   void initState() {
     super.initState();
@@ -52,13 +64,16 @@ class _ObjectiveSelectionScreenState extends State<ObjectiveSelectionScreen>
 
     _dotAnimations = List.generate(
       _objectives.length,
-      (index) => Tween<double>(begin: 0.8, end: 1.2).animate(
+      (index) => Tween<double>(
+        begin: 0.5,
+        end: 1.0,
+      ).animate(
         CurvedAnimation(
           parent: _animationController,
           curve: Interval(
             index / _objectives.length,
             (index + 1) / _objectives.length,
-            curve: Curves.easeInOut,
+            curve: Curves.ease,
           ),
         ),
       ),
@@ -70,6 +85,58 @@ class _ObjectiveSelectionScreenState extends State<ObjectiveSelectionScreen>
       SystemUiMode.immersiveSticky,
       overlays: [],
     );
+  }
+
+  // Método para finalizar o registro e salvar o usuário
+  Future<void> _finishRegistration() async {
+    // O objetivo atual é sempre considerado selecionado
+    final mainObjective = _objectives[_currentPage].title;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Registrar o usuário com todos os dados coletados
+      final success = await UserService.registerUser(
+        firstName: widget.tempUser.firstName,
+        lastName: widget.tempUser.lastName,
+        email: widget.tempUser.email,
+        password: widget.tempUser.password,
+        gender: widget.tempUser.gender,
+        age: widget.tempUser.age,
+        weight: widget.tempUser.weight,
+        height: widget.tempUser.height,
+        objective: mainObjective,
+        secondaryObjectives: _selectedObjectives,
+      );
+
+      if (success) {
+        // Navegar para a tela de boas-vindas
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => WelcomeScreen(
+                userName: widget.tempUser.firstName,
+                userEmail: widget.tempUser.email,
+              ),
+            ),
+            (route) => false, // Remove todas as telas anteriores
+          );
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Erro ao criar a conta. Tente novamente.';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erro ao registrar usuário: ${e.toString()}';
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -226,17 +293,7 @@ class _ObjectiveSelectionScreenState extends State<ObjectiveSelectionScreen>
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Navegar para a tela de boas-vindas
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const WelcomeScreen(
-                              userName:
-                                  '{Usuario}', // Este valor pode ser substituído pelo nome real do usuário
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: _isLoading ? null : _finishRegistration,
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.transparent,
@@ -245,13 +302,23 @@ class _ObjectiveSelectionScreenState extends State<ObjectiveSelectionScreen>
                           borderRadius: BorderRadius.circular(buttonHeight / 2),
                         ),
                       ),
-                      child: Text(
-                        'Confirmar',
-                        style: TextStyle(
-                          fontSize: availableWidth * 0.045,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : Text(
+                              'Finalizar',
+                              style: TextStyle(
+                                fontSize: availableWidth * 0.045,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
                 ),
@@ -259,6 +326,61 @@ class _ObjectiveSelectionScreenState extends State<ObjectiveSelectionScreen>
             );
           },
         ),
+      ),
+      bottomNavigationBar: LayoutBuilder(
+        builder: (context, constraints) {
+          final availableWidth = constraints.maxWidth;
+          final availableHeight = constraints.maxHeight;
+
+          return Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: availableWidth * 0.05,
+              vertical: availableHeight * 0.02,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Mostrar mensagem de erro se houver
+                if (_errorMessage != null)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      _errorMessage!,
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                // Linha apenas com os indicadores de página (removido o botão duplicado)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    _objectives.length,
+                    (index) => Container(
+                      margin: EdgeInsets.symmetric(
+                        horizontal: availableWidth * 0.01,
+                      ),
+                      width: _currentPage == index
+                          ? availableWidth * 0.025
+                          : availableWidth * 0.02,
+                      height: availableWidth * 0.02,
+                      decoration: BoxDecoration(
+                        color: _currentPage == index
+                            ? const Color(0xFF1976D2)
+                            : Colors.grey.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(
+                          availableWidth * 0.01,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

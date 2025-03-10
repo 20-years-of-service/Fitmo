@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:io' show Platform;
 import 'profile_setup_screen.dart';
 import 'login_screen.dart';
+import '../services/user_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -18,6 +19,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -60,6 +63,53 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
+  // Função para registrar usuário
+  Future<void> _registerUser() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Verificar se o email já está em uso
+      final emailExists =
+          await UserService.getUserByEmail(_emailController.text.trim()) !=
+              null;
+
+      if (emailExists) {
+        setState(() {
+          _errorMessage = 'Este email já está em uso. Tente outro email.';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      // Em vez de registrar o usuário aqui, vamos navegar para a tela de configuração de perfil
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ProfileSetupScreen(
+              email: _emailController.text.trim(),
+              firstName: _firstNameController.text.trim(),
+              lastName: _lastNameController.text.trim(),
+              password: _passwordController.text,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erro ao criar conta: ${e.toString()}';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Forçar modo tela cheia a cada build
@@ -93,6 +143,29 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 30),
+                // Mensagem de erro (se houver)
+                if (_errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red.shade700),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: TextStyle(color: Colors.red.shade700),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (_errorMessage != null) const SizedBox(height: 20),
                 // Campo Primeiro Nome
                 TextFormField(
                   controller: _firstNameController,
@@ -217,16 +290,13 @@ class _SignupScreenState extends State<SignupScreen> {
                     ],
                   ),
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // Navegar para a tela de configuração de perfil
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const ProfileSetupScreen(),
-                          ),
-                        );
-                      }
-                    },
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            if (_formKey.currentState!.validate()) {
+                              _registerUser();
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Colors.transparent,
@@ -235,13 +305,23 @@ class _SignupScreenState extends State<SignupScreen> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    child: const Text(
-                      'Criar',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text(
+                            'Criar',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 20),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io' show Platform;
 import 'welcome_screen.dart';
+import '../services/user_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,6 +16,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -55,6 +58,51 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // Função para autenticar usuário
+  Future<void> _loginUser() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final user = await UserService.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (user != null) {
+        // Login bem-sucedido, navegar para tela de boas-vindas com o email do usuário
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => WelcomeScreen(
+                userName: user.firstName,
+                userEmail: user.email,
+              ),
+            ),
+            (route) => false, // Remove todas as telas anteriores
+          );
+        }
+      } else {
+        // Credenciais inválidas
+        setState(() {
+          _errorMessage = 'Email ou senha incorretos. Tente novamente.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erro ao fazer login: ${e.toString()}';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Forçar o modo tela cheia a cada build
@@ -91,6 +139,30 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 40),
+                      // Mensagem de erro (se houver)
+                      if (_errorMessage != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline,
+                                  color: Colors.red.shade700),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: TextStyle(color: Colors.red.shade700),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (_errorMessage != null) const SizedBox(height: 20),
                       // Campo Email
                       TextFormField(
                         controller: _emailController,
@@ -189,23 +261,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              // Extrai o nome de usuário do email (parte antes do @)
-                              String userEmail = _emailController.text.trim();
-                              String userName = userEmail.split('@').first;
-
-                              // Navegue para a tela de boas-vindas
-                              Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      WelcomeScreen(userName: userName),
-                                ),
-                                (route) =>
-                                    false, // Remove todas as telas anteriores da pilha
-                              );
-                            }
-                          },
+                          onPressed: _isLoading
+                              ? null
+                              : () {
+                                  if (_formKey.currentState!.validate()) {
+                                    _loginUser();
+                                  }
+                                },
                           style: ElevatedButton.styleFrom(
                             foregroundColor: Colors.white,
                             backgroundColor: Colors.transparent,
@@ -214,13 +276,23 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(30),
                             ),
                           ),
-                          child: const Text(
-                            'Entrar',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Text(
+                                  'Entrar',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 20),

@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'objective_selection_screen.dart';
+import '../services/user_service.dart'; // Importar o serviço de usuário
+import '../models/user_model.dart'; // Importar o modelo de usuário
 
 class ProfileSetupScreen extends StatefulWidget {
-  const ProfileSetupScreen({super.key});
+  final String email; // Email do usuário registrado
+  final String firstName; // Primeiro nome
+  final String lastName; // Último nome
+  final String password; // Senha (para criar o usuário)
+
+  const ProfileSetupScreen({
+    super.key,
+    required this.email,
+    required this.firstName,
+    required this.lastName,
+    required this.password,
+  });
 
   @override
   State<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
@@ -15,6 +28,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final TextEditingController _idadeController = TextEditingController();
   final TextEditingController _pesoController = TextEditingController();
   final TextEditingController _alturaController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -22,6 +36,53 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     _pesoController.dispose();
     _alturaController.dispose();
     super.dispose();
+  }
+
+  // Método para validar e prosseguir
+  void _proceedToObjectiveSelection() {
+    // Verificar se todos os campos foram preenchidos
+    if (_selectedGenero != null &&
+        _idadeController.text.isNotEmpty &&
+        _pesoController.text.isNotEmpty &&
+        _alturaController.text.isNotEmpty) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Criar usuário temporário com os dados coletados
+      final tempUser = UserModel(
+        firstName: widget.firstName,
+        lastName: widget.lastName,
+        email: widget.email,
+        password: widget.password,
+        gender: _selectedGenero,
+        age: int.tryParse(_idadeController.text),
+        weight: double.tryParse(_pesoController.text),
+        height: double.tryParse(_alturaController.text),
+      );
+
+      // Navegar para a tela de seleção de objetivos
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ObjectiveSelectionScreen(tempUser: tempUser),
+        ),
+      ).then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    } else {
+      // Mostrar erro
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Por favor, preencha todos os campos',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -183,32 +244,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     ],
                   ),
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Verificar se todos os campos foram preenchidos
-                      if (_selectedGenero != null &&
-                          _idadeController.text.isNotEmpty &&
-                          _pesoController.text.isNotEmpty &&
-                          _alturaController.text.isNotEmpty) {
-                        // Navegar para a próxima tela
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => const ObjectiveSelectionScreen(),
-                          ),
-                        );
-                      } else {
-                        // Mostrar erro
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Por favor, preencha todos os campos',
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    },
+                    onPressed: _isLoading ? null : _proceedToObjectiveSelection,
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Colors.transparent,
@@ -217,20 +253,30 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Próximo',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Próximo',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Icon(Icons.arrow_forward, size: 20),
+                            ],
                           ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.arrow_forward, size: 20),
-                      ],
-                    ),
                   ),
                 ),
               ],
@@ -386,13 +432,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     final isSelected = option == currentValue;
                     return ListTile(
                       title: Text(option),
-                      trailing:
-                          isSelected
-                              ? const Icon(
-                                Icons.check_circle,
-                                color: Color(0xFF2B5AD5),
-                              )
-                              : null,
+                      trailing: isSelected
+                          ? const Icon(
+                              Icons.check_circle,
+                              color: Color(0xFF2B5AD5),
+                            )
+                          : null,
                       onTap: () {
                         onSelect(option);
                         Navigator.pop(context);
