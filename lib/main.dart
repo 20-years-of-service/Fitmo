@@ -4,9 +4,15 @@ import 'dart:io' show Platform;
 import 'screens/onboarding_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/theme_provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializa o Hive
+  await Hive.initFlutter();
+
+  // Registre os adaptadores aqui
 
   // Solução mais agressiva para tela cheia
   _setupFullScreen();
