@@ -1,0 +1,2 @@
+C:/Users/LuizF/Downloads/fitmo/android/app/.cxx/Debug/52333e4s/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/LuizF/Downloads/fitmo/android/app/.cxx/Debug/52333e4s/armeabi-v7a/CMakeFiles/rebuild_cache.dir

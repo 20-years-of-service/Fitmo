@@ -1,0 +1,28 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.example.fitmo.app-mergeDebugResources-24:/values-night-v8/values-night-v8.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\LuizF\\Downloads\\fitmo\\android\\app\\src\\main\\res\\values-night\\styles.xml",
+                    "from": {
+                        "startLines": "3,21",
+                        "startColumns": "4,4",
+                        "startOffsets": "175,1343",
+                        "endLines": "14,30",
+                        "endColumns": "12,12",
+                        "endOffsets": "994,2021"
+                    },
+                    "to": {
+                        "startLines": "2,13",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,741",
+                        "endLines": "12,22",
+                        "endColumns": "12,12",
+                        "endOffsets": "736,1410"
+                    }
+                }
+            ]
+        }
+    ]
+}
