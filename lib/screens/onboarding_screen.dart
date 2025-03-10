@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io' show Platform;
-import 'profile_setup_screen.dart';
-import 'welcome_screen.dart';
 import 'signup_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {

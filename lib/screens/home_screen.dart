@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io' show Platform;
 import 'dart:ui';
-import 'dart:math' as math;
 import 'workout_screen.dart';
 import 'settings_screen.dart';
 import 'package:provider/provider.dart';

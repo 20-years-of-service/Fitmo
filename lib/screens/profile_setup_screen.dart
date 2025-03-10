@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'objective_selection_screen.dart';
-import '../services/user_service.dart'; // Importar o serviço de usuário
 import '../models/user_model.dart'; // Importar o modelo de usuário
 
 class ProfileSetupScreen extends StatefulWidget {
