@@ -30,6 +30,11 @@ class _ProfileScreenState extends State<ProfileScreen>
   String _userWeight = "0kg";
   String _userObjective = "Não definido";
 
+  // Variáveis para o cálculo do IMC
+  double? _imc;
+  String _imcStatus = '';
+  Color _imcStatusColor = Colors.grey;
+
   @override
   void initState() {
     super.initState();
@@ -71,6 +76,9 @@ class _ProfileScreenState extends State<ProfileScreen>
           _userHeight = user.height != null ? "${user.height}cm" : "0cm";
           _userWeight = user.weight != null ? "${user.weight}kg" : "0kg";
           _userObjective = user.objective ?? "Não definido";
+
+          // Calcular IMC após carregar os dados
+          _calculateIMC();
         }
 
         _isLoading = false;
@@ -79,6 +87,35 @@ class _ProfileScreenState extends State<ProfileScreen>
       setState(() {
         _errorMessage = "Erro ao carregar dados: ${e.toString()}";
         _isLoading = false;
+      });
+    }
+  }
+
+  // Método para calcular o IMC
+  void _calculateIMC() {
+    if (_userData?.height != null && _userData?.weight != null) {
+      // IMC = peso (kg) / (altura (m) * altura (m))
+      final double heightInMeters =
+          _userData!.height! / 100; // Converte cm para metros
+      final double weightInKg = _userData!.weight!;
+
+      setState(() {
+        _imc = weightInKg / (heightInMeters * heightInMeters);
+
+        // Classificar o IMC
+        if (_imc! < 18.5) {
+          _imcStatus = 'Abaixo do peso';
+          _imcStatusColor = Colors.blue;
+        } else if (_imc! < 25) {
+          _imcStatus = 'Peso normal';
+          _imcStatusColor = Colors.green;
+        } else if (_imc! < 30) {
+          _imcStatus = 'Sobrepeso';
+          _imcStatusColor = Colors.orange;
+        } else {
+          _imcStatus = 'Obesidade';
+          _imcStatusColor = Colors.red;
+        }
       });
     }
   }
@@ -276,6 +313,249 @@ class _ProfileScreenState extends State<ProfileScreen>
                 fontWeight: FontWeight.bold,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Novo método para mostrar o diálogo do IMC
+  void _showIMCDialog(BuildContext context, bool isDarkMode) {
+    // Valores para o gráfico de IMC
+    final List<Map<String, dynamic>> imcCategories = [
+      {'range': 'Abaixo do peso', 'min': 0, 'max': 18.5, 'color': Colors.blue},
+      {'range': 'Peso normal', 'min': 18.5, 'max': 25, 'color': Colors.green},
+      {'range': 'Sobrepeso', 'min': 25, 'max': 30, 'color': Colors.orange},
+      {'range': 'Obesidade', 'min': 30, 'max': 40, 'color': Colors.red},
+    ];
+
+    // Controladores para edição de altura e peso
+    final heightController =
+        TextEditingController(text: _userData?.height?.toString() ?? '');
+    final weightController =
+        TextEditingController(text: _userData?.weight?.toString() ?? '');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDarkMode ? const Color(0xFF2C2C2C) : Colors.white,
+        title: Text(
+          'Calculadora de IMC',
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : const Color(0xFF212121),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Valor do IMC atual
+              if (_imc != null) ...[
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Seu IMC',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color:
+                              isDarkMode ? Colors.grey[300] : Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _imcStatusColor.withOpacity(0.2),
+                          border: Border.all(
+                            color: _imcStatusColor,
+                            width: 2,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _imc!.toStringAsFixed(1),
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: _imcStatusColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _imcStatus,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: _imcStatusColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+
+              // Descrição do IMC
+              Text(
+                'O IMC (Índice de Massa Corporal) é uma medida internacional usada para calcular se uma pessoa está no peso ideal.',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Tabela de classificação
+              Text(
+                'Classificação:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : const Color(0xFF212121),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...imcCategories
+                  .map((category) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: category['color'],
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${category['range']}: ${category['min']} - ${category['max']}',
+                              style: TextStyle(
+                                color: isDarkMode
+                                    ? Colors.grey[300]
+                                    : Colors.grey[700],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ))
+                  .toList(),
+              const SizedBox(height: 24),
+
+              // Formulário para recalcular
+              Text(
+                'Recalcular IMC:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : const Color(0xFF212121),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: heightController,
+                decoration: InputDecoration(
+                  labelText: 'Altura (cm)',
+                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(
+                    color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: weightController,
+                decoration: InputDecoration(
+                  labelText: 'Peso (kg)',
+                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(
+                    color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              try {
+                final double height = double.parse(heightController.text);
+                final double weight = double.parse(weightController.text);
+
+                if (height <= 0 || weight <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            'Valores inválidos. Altura e peso devem ser maiores que zero.')),
+                  );
+                  return;
+                }
+
+                // Calcular o novo IMC
+                final double heightInMeters = height / 100;
+                final double newImc =
+                    weight / (heightInMeters * heightInMeters);
+
+                String status;
+                Color statusColor;
+
+                if (newImc < 18.5) {
+                  status = 'Abaixo do peso';
+                  statusColor = Colors.blue;
+                } else if (newImc < 25) {
+                  status = 'Peso normal';
+                  statusColor = Colors.green;
+                } else if (newImc < 30) {
+                  status = 'Sobrepeso';
+                  statusColor = Colors.orange;
+                } else {
+                  status = 'Obesidade';
+                  statusColor = Colors.red;
+                }
+
+                Navigator.pop(context);
+
+                // Mostrar resultado
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content:
+                        Text('Seu IMC: ${newImc.toStringAsFixed(1)} - $status'),
+                    backgroundColor: statusColor,
+                    duration: Duration(seconds: 5),
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text(
+                          'Erro ao calcular IMC. Verifique os valores informados.')),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isDarkMode
+                  ? ThemeProvider.lightPurple
+                  : const Color(0xFF6677CC),
+              foregroundColor: Colors.white,
+            ),
+            child: Text('Calcular'),
           ),
         ],
       ),
@@ -515,6 +795,94 @@ class _ProfileScreenState extends State<ProfileScreen>
                           icon: Icons.calendar_today),
                     ],
                   ),
+
+                  // Card IMC
+                  if (_imc != null) ...[
+                    const SizedBox(height: 24),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color:
+                            isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: InkWell(
+                        onTap: () => _showIMCDialog(context, isDarkMode),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: _imcStatusColor.withOpacity(0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.scale,
+                                    color: _imcStatusColor,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Seu IMC',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: isDarkMode
+                                            ? Colors.white
+                                            : const Color(0xFF212121),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${_imc!.toStringAsFixed(1)} - $_imcStatus',
+                                      style: TextStyle(
+                                        color: _imcStatusColor,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Spacer(),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: isDarkMode
+                                      ? Colors.grey[400]
+                                      : Colors.grey[600],
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Toque para mais detalhes e para calcular novamente',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDarkMode
+                                    ? Colors.grey[400]
+                                    : Colors.grey[600],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
 
                   // Objetivo de Fitness
                   const SizedBox(height: 24),
