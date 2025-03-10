@@ -274,14 +274,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       );
 
       // Estilo da barra de notificações
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      final isDarkMode = themeProvider.isDarkMode;
-
       SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(
+        const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness:
-              isDarkMode ? Brightness.light : Brightness.dark,
+          statusBarIconBrightness: Brightness.dark,
           systemNavigationBarColor: Colors.transparent,
         ),
       );
