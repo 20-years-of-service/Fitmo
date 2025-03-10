@@ -7,6 +7,7 @@ import 'settings_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import 'profile_screen.dart';
+import 'music_player_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -52,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _screens = [
       _buildHomeContent(),
       const WorkoutScreen(), // Usando a nova tela de treinos
+      const MusicPlayerScreen(), // Adicionando a tela do player de música
       const SettingsScreen(), // Adicionando a tela de configurações
       ProfileScreen(userEmail: widget.userEmail),
     ];
@@ -185,11 +187,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               0, Icons.home, 'Início', true, isDarkMode),
                           _buildNavItem(1, Icons.calendar_today, 'Treinos',
                               true, isDarkMode),
-                          _buildFloatingNavButton(),
                           _buildNavItem(
-                              2, Icons.settings, 'Ajustes', true, isDarkMode),
+                              2, Icons.music_note, 'Música', true, isDarkMode),
                           _buildNavItem(
-                              3, Icons.person, 'Perfil', true, isDarkMode),
+                              3, Icons.settings, 'Ajustes', true, isDarkMode),
+                          _buildNavItem(
+                              4, Icons.person, 'Perfil', true, isDarkMode),
                         ],
                       ),
                     ),
@@ -578,6 +581,50 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // Removemos o disabledColor já que agora todos os itens são habilitados
     final color = isSelected ? activeColor : inactiveColor;
 
+    // Item de música (índice 2) com estilo especial quando selecionado
+    if (index == 2) {
+      return InkWell(
+        onTap: () {
+          setState(() {
+            _selectedIndex = index;
+            // Adiciona animação ao trocar de aba
+            _pageController.animateToPage(
+              index,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          });
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isSelected ? activeColor : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : color,
+                size: 24,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: color,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Outros itens com estilo padrão
     return InkWell(
       onTap: () {
         setState(() {
@@ -607,43 +654,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // Botão flutuante da navegação
-  Widget _buildFloatingNavButton() {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
-
-    return Container(
-      width: 50,
-      height: 50,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: isDarkMode
-              ? [ThemeProvider.lightPurple, ThemeProvider.primaryPurple]
-              : [ThemeProvider.primaryPurple, ThemeProvider.darkPurple],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: (isDarkMode
-                    ? ThemeProvider.lightPurple
-                    : ThemeProvider.primaryPurple)
-                .withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: IconButton(
-        icon: const Icon(Icons.music_note, color: Colors.white),
-        onPressed: () {
-          // Adicionar função para o botão de música
-        },
       ),
     );
   }
