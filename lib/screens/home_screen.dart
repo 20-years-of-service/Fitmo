@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io' show Platform;
-import 'dart:ui'; // Importação para o ImageFilter
+import 'dart:ui';
+import 'dart:math' as math;
+import 'workout_screen.dart';
+import 'settings_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -13,10 +19,38 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  int _selectedIndex = 0;
+
+  // Lista de widgets para as abas
+  late final List<Widget> _screens;
+
+  // Controlador para animações entre telas
+  final PageController _pageController = PageController();
+
+  // Dados para o gráfico (simulação)
+  final List<double> _graphPoints = [
+    0.3,
+    0.5,
+    0.4,
+    0.7,
+    0.5,
+    0.8,
+    0.6,
+    0.9,
+    0.7
+  ];
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Inicializa a lista de telas com a tela de treinos separada
+    _screens = [
+      _buildHomeContent(),
+      const WorkoutScreen(), // Usando a nova tela de treinos
+      const SettingsScreen(), // Adicionando a tela de configurações
+      const ProfileScreen(), // Adicionando a tela de perfil
+    ];
     // Forçar modo tela cheia
     _forceFullScreenMode();
   }
@@ -31,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _pageController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -45,11 +80,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       );
 
       // Define estilo da barra de notificação
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      final isDarkMode = themeProvider.isDarkMode;
+
       SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(
+        SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness
-              .light, // Ícones claros para melhor visibilidade sobre o fundo colorido
+          statusBarIconBrightness:
+              isDarkMode ? Brightness.light : Brightness.dark,
           systemNavigationBarColor: Colors.transparent,
           systemNavigationBarDividerColor: Colors.transparent,
         ),
@@ -66,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarBrightness:
-              Brightness.dark, // iOS usa o inverso (dark = ícones claros)
+              Brightness.light, // iOS usa o inverso (light = ícones escuros)
         ),
       );
     }
@@ -77,169 +115,782 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // Forçar modo tela cheia
     _forceFullScreenMode();
 
-    return Scaffold(
-      // Corpo da tela com AppBar personalizada
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final double availableHeight = constraints.maxHeight;
-          final double availableWidth = constraints.maxWidth;
-          final bool isPortrait = availableHeight > availableWidth;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
 
-          return Stack(
-            children: [
-              // Fundo gradiente que se estende por trás da barra de notificações
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: MediaQuery.of(context).padding.top +
-                    (isPortrait
-                        ? availableHeight * 0.08
-                        : availableHeight * 0.12),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
+    return Scaffold(
+      backgroundColor:
+          isDarkMode ? const Color(0xFF121212) : const Color(0xFFF5F5F5),
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double availableHeight = constraints.maxHeight;
+            final double availableWidth = constraints.maxWidth;
+            final bool isPortrait = availableHeight > availableWidth;
+
+            // Tamanhos responsivos
+            final double cardPadding = availableWidth * 0.05;
+            final double contentPadding = availableWidth * 0.06;
+            final double avatarSize =
+                isPortrait ? availableWidth * 0.12 : availableWidth * 0.08;
+            final double titleFontSize = isPortrait ? 18.0 : 16.0;
+            final double subtitleFontSize = isPortrait ? 14.0 : 12.0;
+            final double iconSize = isPortrait ? 26.0 : 22.0;
+
+            return Stack(
+              children: [
+                // PageView para permitir animações de deslizamento entre abas
+                PageView(
+                  controller: _pageController,
+                  physics:
+                      const NeverScrollableScrollPhysics(), // Desabilita o deslizamento manual
+                  onPageChanged: (index) {
+                    setState(() {
+                      _selectedIndex = index;
+                    });
+                  },
+                  children: _screens,
+                ),
+
+                // Barra de navegação na parte inferior
+                Positioned(
+                  bottom: 20,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      width: availableWidth * 0.95,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color:
+                            isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black
+                                .withOpacity(isDarkMode ? 0.3 : 0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildNavItem(
+                              0, Icons.home, 'Início', true, isDarkMode),
+                          _buildNavItem(1, Icons.calendar_today, 'Treinos',
+                              true, isDarkMode),
+                          _buildFloatingNavButton(),
+                          _buildNavItem(
+                              2, Icons.settings, 'Ajustes', true, isDarkMode),
+                          _buildNavItem(
+                              3, Icons.person, 'Perfil', true, isDarkMode),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              // Conteúdo que respeita a área segura
-              SafeArea(
-                child: Column(
-                  children: [
-                    // AppBar personalizada responsiva
-                    Container(
-                      height: isPortrait
-                          ? availableHeight * 0.08
-                          : availableHeight * 0.12,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFFCD65CE), Color(0xFF2B5AD5)],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: availableWidth * 0.04),
-                        child: Row(
-                          children: [
-                            Text(
-                              'Fitmo',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                fontSize: isPortrait
-                                    ? availableWidth * 0.06
-                                    : availableWidth * 0.04,
-                              ),
-                            ),
-                            const Spacer(),
-                            // Ícones na AppBar
-                            IconButton(
-                              icon: Icon(
-                                Icons.notifications_outlined,
-                                color: Colors.white,
-                                size: isPortrait
-                                    ? availableWidth * 0.07
-                                    : availableWidth * 0.05,
-                              ),
-                              onPressed: () {},
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Conteúdo da tela - adaptativo para diferentes tamanhos
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: availableWidth * 0.06),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.fitness_center,
-                              size: isPortrait
-                                  ? availableWidth * 0.2
-                                  : availableWidth * 0.15,
-                              color: Color(0xFF2B5AD5),
-                            ),
-                            SizedBox(height: availableHeight * 0.04),
-                            Text(
-                              'Bem-vindo à tela inicial, ${widget.userName}!',
-                              style: TextStyle(
-                                fontSize: isPortrait
-                                    ? availableWidth * 0.06
-                                    : availableWidth * 0.04,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF212121),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(height: availableHeight * 0.02),
-                            Text(
-                              'Aqui será o dashboard principal do aplicativo.',
-                              style: TextStyle(
-                                fontSize: isPortrait
-                                    ? availableWidth * 0.045
-                                    : availableWidth * 0.035,
-                                color: Color(0xFF666666),
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-      extendBody:
-          true, // Permite que o conteúdo passe por baixo da BottomNavigationBar
-      bottomNavigationBar: ClipRRect(
-        child: BackdropFilter(
-          // Adiciona um efeito de blur sob a barra de navegação para melhor contraste
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              // Ajusta o tema da barra de navegação para ser mais legível
-              bottomNavigationBarTheme: BottomNavigationBarThemeData(
-                selectedItemColor: Color(0xFFCD65CE),
-                unselectedItemColor: Colors.grey,
-                selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            child: BottomNavigationBar(
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Início',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.calendar_today),
-                  label: 'Treinos',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: 'Perfil',
-                ),
               ],
-              currentIndex: 0,
-              onTap: (index) {
-                // Implementar navegação para outras telas aqui
-              },
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
   }
+
+  // Conteúdo da tela Home - Atualizado para suportar tema escuro
+  Widget _buildHomeContent() {
+    return Consumer<ThemeProvider>(builder: (context, themeProvider, _) {
+      final isDarkMode = themeProvider.isDarkMode;
+
+      return LayoutBuilder(builder: (context, constraints) {
+        final double availableWidth = constraints.maxWidth;
+        final double contentPadding = availableWidth * 0.06;
+        final double cardPadding = availableWidth * 0.05;
+
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: contentPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+
+                // Cabeçalho "Início"
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(
+                    'Início',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Cartão do usuário
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            Colors.black.withOpacity(isDarkMode ? 0.3 : 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.all(cardPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Olá novamente!',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.userName,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Cartão de Objetivo do Dia
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            Colors.black.withOpacity(isDarkMode ? 0.3 : 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Objetivo do dia',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: isDarkMode
+                                ? Colors.white
+                                : const Color(0xFF212121),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [
+                                ThemeProvider.accentPurple,
+                                ThemeProvider.darkAccentPurple
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'Check',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Cartão de Progresso do Treino
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            Colors.black.withOpacity(isDarkMode ? 0.3 : 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Título e botão
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Progresso do treino',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: isDarkMode
+                                    ? Colors.white
+                                    : const Color(0xFF212121),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: isDarkMode
+                                      ? [
+                                          ThemeProvider.lightPurple,
+                                          ThemeProvider.primaryPurple
+                                        ]
+                                      : [
+                                          ThemeProvider.primaryPurple,
+                                          ThemeProvider.darkPurple
+                                        ],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Text(
+                                    'Semanal',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Icon(Icons.keyboard_arrow_down,
+                                      color: Colors.white, size: 16),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Barra de porcentagem
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                        child: Row(
+                          children: [
+                            Text('0%',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDarkMode
+                                        ? Colors.grey[400]
+                                        : Colors.grey)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Container(
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: isDarkMode
+                                      ? const Color(0xFF2A2A2A)
+                                      : Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                                child: FractionallySizedBox(
+                                  widthFactor: 0.0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          ThemeProvider.secondaryPink,
+                                          ThemeProvider.lightPink
+                                        ],
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('+0%',
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.green)),
+                          ],
+                        ),
+                      ),
+
+                      // Gráfico
+                      SizedBox(
+                        height: 120,
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                          child: Center(
+                            child: Text(
+                              'Você ainda não possui progresso registrado',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDarkMode
+                                    ? Colors.grey[400]
+                                    : Colors.grey.shade500,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Porcentagens do gráfico
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('0%',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDarkMode
+                                        ? Colors.grey[400]
+                                        : Colors.grey)),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: (isDarkMode
+                                            ? ThemeProvider.lightPurple
+                                            : ThemeProvider.primaryPurple)
+                                        .withOpacity(0.7),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text('-40%',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: isDarkMode
+                                            ? Colors.grey[400]
+                                            : Colors.grey)),
+                              ],
+                            ),
+                            Text('50%',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDarkMode
+                                        ? Colors.grey[400]
+                                        : Colors.grey)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Seção Histórico de Treinos
+                Text(
+                  'Histórico de Treinos',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: isDarkMode ? Colors.white : const Color(0xFF212121),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Mensagem de que não há treinos ainda
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            Colors.black.withOpacity(isDarkMode ? 0.3 : 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.fitness_center,
+                        size: 50,
+                        color: isDarkMode
+                            ? Colors.grey[600]
+                            : Colors.grey.shade400,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Nenhum treino realizado ainda',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: isDarkMode
+                              ? Colors.white
+                              : const Color(0xFF212121),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Comece sua jornada fitness hoje mesmo! Escolha um treino e dê o primeiro passo.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDarkMode
+                              ? Colors.grey[400]
+                              : Colors.grey.shade700,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isDarkMode
+                                ? [
+                                    ThemeProvider.lightPurple,
+                                    ThemeProvider.primaryPurple
+                                  ]
+                                : [
+                                    ThemeProvider.primaryPurple,
+                                    ThemeProvider.darkPurple
+                                  ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Iniciar Primeiro Treino',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Espaço adicional para evitar que o conteúdo fique atrás da barra de navegação
+                const SizedBox(height: 80),
+              ],
+            ),
+          ),
+        );
+      });
+    });
+  }
+
+  // Construir item de navegação com possibilidade de desabilitar - Adaptado para tema
+  Widget _buildNavItem(
+      int index, IconData icon, String label, bool enabled, bool isDarkMode) {
+    final isSelected = _selectedIndex == index;
+    final Color activeColor =
+        isDarkMode ? const Color(0xFF8899FF) : const Color(0xFF6677CC);
+    final Color inactiveColor = isDarkMode ? Colors.grey[600]! : Colors.grey;
+
+    // Removemos o disabledColor já que agora todos os itens são habilitados
+    final color = isSelected ? activeColor : inactiveColor;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedIndex = index;
+          // Adiciona animação ao trocar de aba
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        });
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 24,
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: color,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Botão flutuante da navegação
+  Widget _buildFloatingNavButton() {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: isDarkMode
+              ? [ThemeProvider.lightPurple, ThemeProvider.primaryPurple]
+              : [ThemeProvider.primaryPurple, ThemeProvider.darkPurple],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isDarkMode
+                    ? ThemeProvider.lightPurple
+                    : ThemeProvider.primaryPurple)
+                .withOpacity(0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: IconButton(
+        icon: const Icon(Icons.music_note, color: Colors.white),
+        onPressed: () {
+          // Adicionar função para o botão de música
+        },
+      ),
+    );
+  }
+
+  // Item de treino
+  Widget _buildWorkoutItem(String title, String subtitle, double progress,
+      Color color, String image) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Imagem do treino
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  image,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.fitness_center, color: color);
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Informações do treino
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Barra de progresso
+                  Container(
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: FractionallySizedBox(
+                      widthFactor: progress,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Checkbox circular
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.grey.shade300, width: 2),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Pintor personalizado para o gráfico
+class GraphPainter extends CustomPainter {
+  final List<double> points;
+
+  GraphPainter(this.points);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint linePaint = Paint()
+      ..color = const Color(0xFF6677CC).withOpacity(0.7)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+
+    final Paint fillPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          const Color(0xFF6677CC).withOpacity(0.2),
+          const Color(0xFF6677CC).withOpacity(0.05),
+        ],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..style = PaintingStyle.fill;
+
+    final double spacing = size.width / (points.length - 1);
+    final double maxValue = 1.0;
+
+    final Path linePath = Path();
+    final Path fillPath = Path();
+
+    // Caminho para a linha
+    for (int i = 0; i < points.length; i++) {
+      final double x = i * spacing;
+      final double y = size.height - (points[i] / maxValue * size.height);
+
+      if (i == 0) {
+        linePath.moveTo(x, y);
+        fillPath.moveTo(x, y);
+      } else {
+        final double prevX = (i - 1) * spacing;
+        final double prevY =
+            size.height - (points[i - 1] / maxValue * size.height);
+
+        // Ponto de controle para curva suave
+        final double cpX1 = prevX + (x - prevX) / 2;
+
+        linePath.cubicTo(cpX1, prevY, cpX1, y, x, y);
+        fillPath.cubicTo(cpX1, prevY, cpX1, y, x, y);
+      }
+    }
+
+    // Caminho para o preenchimento
+    final double lastX = (points.length - 1) * spacing;
+    fillPath.lineTo(lastX, size.height);
+    fillPath.lineTo(0, size.height);
+    fillPath.close();
+
+    // Desenha os caminhos
+    canvas.drawPath(fillPath, fillPaint);
+    canvas.drawPath(linePath, linePaint);
+
+    // Ponto destacado (no valor mais alto)
+    int highestIndex = 0;
+    double highestValue = points[0];
+    for (int i = 1; i < points.length; i++) {
+      if (points[i] > highestValue) {
+        highestValue = points[i];
+        highestIndex = i;
+      }
+    }
+
+    final double hx = highestIndex * spacing;
+    final double hy = size.height - (highestValue / maxValue * size.height);
+
+    // Desenha o retângulo destacado
+    final Paint highlightPaint = Paint()
+      ..color = const Color(0xFF6677CC).withOpacity(0.2)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRect(
+      Rect.fromLTWH(hx - 10, 0, 20, size.height),
+      highlightPaint,
+    );
+
+    // Desenha o ponto destacado
+    final Paint dotPaint = Paint()
+      ..color = const Color(0xFF6677CC)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(Offset(hx, hy), 5, dotPaint);
+  }
+
+  @override
+  bool shouldRepaint(GraphPainter oldDelegate) => true;
 }

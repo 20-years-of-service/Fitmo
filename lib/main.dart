@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io' show Platform;
 import 'screens/onboarding_screen.dart';
+import 'package:provider/provider.dart';
+import 'providers/theme_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,7 +11,12 @@ void main() {
   // Solução mais agressiva para tela cheia
   _setupFullScreen();
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 // Configura tela cheia com abordagens específicas por plataforma
@@ -54,31 +61,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return MaterialApp(
       title: 'Fitmo',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFF4081),
-          secondary: const Color(0xFF006064),
-        ),
-        useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.light,
-          ),
-        ),
-      ),
+      theme: themeProvider.currentTheme,
       builder: (context, child) {
         // Removemos a configuração que poderia remover o padding superior
         return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: const SystemUiOverlayStyle(
+          value: SystemUiOverlayStyle(
             statusBarColor: Colors.transparent,
             systemNavigationBarColor: Colors.transparent,
             systemNavigationBarDividerColor: Colors.transparent,
-            statusBarIconBrightness: Brightness.light,
-            systemNavigationBarIconBrightness: Brightness.light,
+            statusBarIconBrightness:
+                themeProvider.isDarkMode ? Brightness.light : Brightness.dark,
+            systemNavigationBarIconBrightness:
+                themeProvider.isDarkMode ? Brightness.light : Brightness.dark,
           ),
           child: child!,
         );
@@ -139,10 +138,14 @@ class _SplashScreenState extends State<SplashScreen>
       );
 
       // Garante que a barra inferior seja transparente e a superior visível
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      final isDarkMode = themeProvider.isDarkMode;
+
       SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(
+        SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
+          statusBarIconBrightness:
+              isDarkMode ? Brightness.light : Brightness.dark,
           systemNavigationBarColor: Colors.transparent,
           systemNavigationBarDividerColor: Colors.transparent,
         ),
@@ -161,11 +164,14 @@ class _SplashScreenState extends State<SplashScreen>
     // Aplica novamente a tela cheia em cada rebuild
     _forceFullScreenMode();
 
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     return SafeArea(
       child: Container(
         width: double.infinity,
         height: double.infinity,
-        color: Colors.white,
+        color: isDarkMode ? const Color(0xFF121212) : Colors.white,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -177,18 +183,22 @@ class _SplashScreenState extends State<SplashScreen>
                     Image.asset('assets/images/logo.png', fit: BoxFit.contain),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Fitmo',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF212121),
+                  color: isDarkMode ? Colors.white : const Color(0xFF212121),
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'Cada saúde no seu ritmo',
-                style: TextStyle(fontSize: 16, color: Color(0xFF666666)),
+                style: TextStyle(
+                    fontSize: 16,
+                    color: isDarkMode
+                        ? Colors.grey[400]
+                        : const Color(0xFF666666)),
               ),
             ],
           ),
@@ -264,10 +274,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       );
 
       // Estilo da barra de notificações
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      final isDarkMode = themeProvider.isDarkMode;
+
       SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(
+        SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.dark,
+          statusBarIconBrightness:
+              isDarkMode ? Brightness.light : Brightness.dark,
           systemNavigationBarColor: Colors.transparent,
         ),
       );
@@ -292,8 +306,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     // Forçar tela com barra de notificação visível a cada build
     _forceFullScreen();
 
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -320,20 +337,24 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'Fitmo',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF212121),
+                          color: isDarkMode
+                              ? Colors.white
+                              : const Color(0xFF212121),
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
+                      Text(
                         'Cada saúde no seu ritmo',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Color(0xFF666666),
+                          color: isDarkMode
+                              ? Colors.grey[400]
+                              : const Color(0xFF666666),
                         ),
                       ),
                     ],
@@ -349,11 +370,26 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF9C27B0), Color(0xFF1976D2)],
+                    gradient: LinearGradient(
+                      colors: isDarkMode
+                          ? [
+                              ThemeProvider.lightPurple,
+                              ThemeProvider.accentPurple
+                            ]
+                          : [const Color(0xFF9C27B0), const Color(0xFF1976D2)],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (isDarkMode
+                                ? ThemeProvider.lightPurple
+                                : const Color(0xFF9C27B0))
+                            .withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
                   child: ElevatedButton(
                     onPressed: () {
