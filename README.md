@@ -104,15 +104,6 @@ fitmo/
    ```bash
    flutter build apk --release
    ```
-   
-5. **Gerando um APK instalável**
-   ```bash
-   # Bundle (.aab) para Google Play
-   flutter build appbundle --release
-   
-   # APK dividido por arquitetura
-   flutter build apk --split-per-abi --release
-   ```
 
 ## 🌗 Tema Claro e Escuro
 
