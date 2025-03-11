@@ -28,13 +28,6 @@ O **Fitmo** é um aplicativo de fitness exclusivo para Android que combina trein
 - Reproduza suas músicas favoritas durante os treinos
 - Interface moderna e intuitiva
 - Controles de reprodução completos
-- Exibição de playlists personalizadas
-
-### Programas de Treino Personalizados
-- Treinos específicos para diferentes grupos musculares
-- Instruções detalhadas para cada exercício
-- Rotinas adaptadas ao seu nível de condicionamento
-- Acompanhamento de séries, repetições e tempo
 
 ### Acompanhamento de Progresso
 - Histórico completo de atividades
@@ -84,7 +77,6 @@ fitmo/
 - Dispositivo Android físico ou emulador
 
 ### Download Direto do APK
-Se você deseja apenas instalar e usar o aplicativo sem configurar o ambiente de desenvolvimento, você pode baixar o APK diretamente na seção [📲 Download do APK](#-download-do-apk) deste README.
 Se você deseja apenas instalar e usar o aplicativo sem configurar o ambiente de desenvolvimento, você pode baixar o APK diretamente na seção "Releases".
 
 ### Passo a Passo
@@ -115,7 +107,6 @@ O Fitmo oferece suporte completo a temas claro e escuro, adaptando-se às prefer
 
 - **Tema Escuro**: Ideal para treinos noturnos e economia de bateria
 - **Tema Claro**: Perfeito para ambientes externos e boa visibilidade diurna
-- **Alternância automática** baseada nas configurações do sistema Android
 
 ## 📱 Compatibilidade com Android
 
