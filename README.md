@@ -1,7 +1,7 @@
 # Fitmo 🏋️🎵
 
 <div align="center">
-  <img src="assets/images/logo.png" alt="Fitmo Logo" width="250">
+  <img src="assets/images/logo.png" alt="Logo" width="250">
   <br>
   <h3>Sua jornada fitness com a trilha sonora perfeita</h3>
   
@@ -21,6 +21,9 @@ O **Fitmo** é um aplicativo de fitness exclusivo para Android que combina trein
 - Player de música integrado para seus treinos
 - Acompanhamento de progresso e histórico de atividades
 - Perfil personalizado com suas informações e metas
+
+- Video de DEMONSTRAÇÃO do estado atual
+- Link: https://www.youtube.com/shorts/SSY-fUPdnfc
 
 ## ✨ Recursos Principais
 
