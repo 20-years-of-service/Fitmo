@@ -1,7 +1,7 @@
 # Fitmo 🏋️🎵
 
 <div align="center">
-  <img src="assets/images/fitmo_logo.png" alt="Fitmo Logo" width="250">
+  <img src="assets/images/logo.png" alt="Fitmo Logo" width="250">
   <br>
   <h3>Sua jornada fitness com a trilha sonora perfeita</h3>
   
@@ -83,6 +83,9 @@ fitmo/
 - Android SDK (API level 21+/Android 5.0 Lollipop ou superior)
 - Dispositivo Android físico ou emulador
 
+### Download Direto do APK
+Se você deseja apenas instalar e usar o aplicativo sem configurar o ambiente de desenvolvimento, você pode baixar o APK diretamente na seção [📲 Download do APK](#-download-do-apk) deste README.
+
 ### Passo a Passo
 1. **Clone o repositório**
    ```bash
@@ -104,32 +107,6 @@ fitmo/
    ```bash
    flutter build apk --release
    ```
-   
-5. **Gerando um APK instalável**
-   ```bash
-   # Bundle (.aab) para Google Play
-   flutter build appbundle --release
-   
-   # APK dividido por arquitetura
-   flutter build apk --split-per-abi --release
-   ```
-
-## 📱 Capturas de Tela
-
-<div align="center">
-  <table>
-    <tr>
-      <td><img src="screenshots/login_screen.png" width="200" alt="Tela de Login"></td>
-      <td><img src="screenshots/workout_screen.png" width="200" alt="Tela de Treino"></td>
-      <td><img src="screenshots/music_player.png" width="200" alt="Player de Música"></td>
-    </tr>
-    <tr>
-      <td align="center">Login</td>
-      <td align="center">Treinos</td>
-      <td align="center">Player de Música</td>
-    </tr>
-  </table>
-</div>
 
 ## 🌗 Tema Claro e Escuro
 
@@ -182,3 +159,13 @@ Este projeto está licenciado sob a **MIT License** - consulte o arquivo [LICENS
   <p>Desenvolvido como parte do Projeto Integrador do curso de Análise e Desenvolvimento de Sistemas do Senac.</p>
   <p>🌟 <b>Transforme seus treinos com o Fitmo!</b> 🌟</p>
 </div>
+
+## 📲 Download do APK
+
+Você pode baixar a versão mais recente do Fitmo diretamente pelos links abaixo:
+
+| Versão | Data | Link | Notas |
+|--------|------|------|-------|
+| v1.0.0 | Março 2024 | [Fitmo-v1.0.0.apk](https://github.com/seu-usuario/fitmo/releases/download/v1.0.0/Fitmo-v1.0.0.apk) | Versão inicial |
+
+Para mais detalhes sobre as mudanças e melhorias em cada versão, consulte nosso [RELEASE.md](RELEASE.md).
