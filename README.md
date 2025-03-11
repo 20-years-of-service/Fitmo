@@ -1,7 +1,7 @@
 # Fitmo 🏋️🎵
 
 <div align="center">
-  <img src="assets/images/fitmo_logo.png" alt="Fitmo Logo" width="250">
+  <img src="assets/images/logo.png" alt="Fitmo Logo" width="250">
   <br>
   <h3>Sua jornada fitness com a trilha sonora perfeita</h3>
   
