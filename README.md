@@ -159,13 +159,3 @@ Este projeto está licenciado sob a **MIT License** - consulte o arquivo [LICENS
   <p>Desenvolvido como parte do Projeto Integrador do curso de Análise e Desenvolvimento de Sistemas do Senac.</p>
   <p>🌟 <b>Transforme seus treinos com o Fitmo!</b> 🌟</p>
 </div>
-
-## 📲 Download do APK
-
-Você pode baixar a versão mais recente do Fitmo diretamente pelos links abaixo:
-
-| Versão | Data | Link | Notas |
-|--------|------|------|-------|
-| v1.0.0 | Março 2024 | [Fitmo-v1.0.0.apk](https://github.com/seu-usuario/fitmo/releases/download/v1.0.0/Fitmo-v1.0.0.apk) | Versão inicial |
-
-Para mais detalhes sobre as mudanças e melhorias em cada versão, consulte nosso [RELEASE.md](RELEASE.md).
