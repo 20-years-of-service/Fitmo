@@ -1,100 +1,184 @@
-# Fitmo 🏋️🎵  
-**Transforme seus treinos em experiências musicais motivadoras!**
+# Fitmo 🏋️🎵
 
----
+<div align="center">
+  <img src="assets/images/fitmo_logo.png" alt="Fitmo Logo" width="250">
+  <br>
+  <h3>Sua jornada fitness com a trilha sonora perfeita</h3>
+  
+  ![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-blue)
+  ![Versão](https://img.shields.io/badge/Versão-1.0.0-green)
+  ![Flutter](https://img.shields.io/badge/Flutter-3.13.0+-informational)
+  ![Plataforma](https://img.shields.io/badge/Plataforma-Android-brightgreen)
+  ![Licença](https://img.shields.io/badge/Licença-MIT-orange)
+</div>
 
-## 📖 Sobre o Projeto  
-**Fitmo** é um aplicativo de fitness desenvolvido para integrar música e exercícios físicos, criando treinos personalizados e envolventes. Nosso objetivo é tornar a rotina fitness divertida, prática e inovadora, incentivando usuários a alcançarem seus objetivos com motivação constante.  
+## 📱 O que é o Fitmo?
 
-*Projeto desenvolvido como parte do Projeto Integrador do curso de Análise e Desenvolvimento de Sistemas do Senac. Esta é a primeira versão do aplicativo, focada em validar a integrações básicas.*
+O **Fitmo** é um aplicativo de fitness exclusivo para Android que combina treinos personalizados com uma experiência musical integrada. Projetado para transformar sua rotina de exercícios em momentos motivadores e envolventes, o Fitmo oferece:
 
----
+- Interface intuitiva com tema claro e escuro
+- Treinos personalizados baseados em seus objetivos
+- Player de música integrado para seus treinos
+- Acompanhamento de progresso e histórico de atividades
+- Perfil personalizado com suas informações e metas
 
-## ✨ Funcionalidades Atuais  
-- **Cadastro de usuários:** Crie seu perfil e defina metas pessoais.  
-- **Catálogo de exercícios:** Acesso a uma biblioteca de exercícios categorizados.  
-- **Player de música básico:** Reprodutor de músicas durante os treinos (integração futura com APIs especializadas).  
-- **Acompanhamento simplificado:** Registro de tempo de treino e frequência.  
+## ✨ Recursos Principais
 
----
+### Player de Música Integrado
+- Reproduza suas músicas favoritas durante os treinos
+- Interface moderna e intuitiva
+- Controles de reprodução completos
+- Exibição de playlists personalizadas
 
-## 🛠️ Tecnologias Utilizadas  
-- **Framework:** Flutter  
-- **IDE:** Visual Studio Code   
-- **Design:** Figma (UI/UX)    
-- **Versionamento** Git + GitHub   
+### Programas de Treino Personalizados
+- Treinos específicos para diferentes grupos musculares
+- Instruções detalhadas para cada exercício
+- Rotinas adaptadas ao seu nível de condicionamento
+- Acompanhamento de séries, repetições e tempo
 
----
+### Acompanhamento de Progresso
+- Histórico completo de atividades
+- Estatísticas de desempenho
+- Visualização gráfica de evolução
+- Acompanhamento de métricas importantes
 
-## 🚀 Como Executar o Projeto  
-1. **Pré-requisitos:**  
-   - Flutter SDK (versão 3.13.0 ou superior)  
-   - Android Studio/VS Code  
-   - Kotlin (para alguns módulos backend)  
+### Personalização Avançada
+- Configurações de perfil detalhadas
+- Preferências de treino customizáveis
+- Objetivos fitness personalizados
+- Adaptação contínua baseada no progresso
 
-2. **Clone o repositório:**  
-   ```bash  
-   git clone https://github.com/20-years-of-service/Fitmo.git  
-   ```  
+## 🛠️ Tecnologias Utilizadas
 
-3. **Instale as dependências do Flutter:**  
-   ```bash  
-   cd Fitmo/frontend  
-   flutter pub get  
-   ```  
+- **Frontend**: Flutter (Dart)
+- **Armazenamento**: Hive (banco de dados local)
+- **Gerenciamento de Estado**: Provider
+- **Áudio**: just_audio, AudioPlayers
+- **UI/UX**: Material Design 3 com tema personalizado
+- **Versionamento**: Git & GitHub
 
-4. **Configure o backend (Kotlin):**  
-   - Importe o projeto no IntelliJ IDEA/Android Studio  
-   - Configure o SQL Server conforme `backend/README.md`  
+## 📂 Estrutura do Projeto
 
-5. **Execute o aplicativo:**  
-   ```bash  
-   flutter run  
-   ```  
-
----
-
-## 👥 Contribuidores  
-- **LUIZ FERNANDO COSTA DA SILVA** - *Design e Experiência do Usuário*  
-- **LUIZ GUSTAVO OLIVEIRA DE LIMA** - *Banco de Dados e Backend*  
-- **GABRIEL ROSA NEGREIROS DIAS** - *Testes e Garantia de Qualidade*  
-- **VICTOR SILVA DE ANDRADE** - *Integração de Sistemas*  
-- **THIAGO VIEIRA NOBRE** - *Desenvolvimento Frontend*  
-
----
-
-## 📄 Licença  
-Este projeto está licenciado sob a **MIT License** - consulte o arquivo [LICENSE](LICENSE) para detalhes.  
-
----
-
-## 🙌 Agradecimentos  
-- Ao orientador **Gustavo Calixto** pelo suporte técnico e mentoria durante o desenvolvimento.  
-- Ao Senac pela infraestrutura e oportunidades de aprendizado prático.  
-- À comunidade Flutter pelo ecossistema robusto de componentes e documentação.  
-
----
-
-## 📌 Próximos Passos  
-- [ ] Integração com APIs de música (ex: Spotify/YouTube Music/Arquivos mp3)  
-- [ ] Implementação de sincronização com wearables  
-- [ ] Desenvolvimento de algoritmos de personalização de treinos  
-
----
-
-![Badges](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow) 
-![License](https://img.shields.io/badge/Licença-MIT-green)  
-**📸 Capturas de Tela**  
-*Disponíveis em breve na pasta `/screenshots`*
-
-**🌟 Junte-se à revolução fitness!**  
-*Contribuições são bem-vindas! Siga as diretrizes do [CONTRIBUTING.md](CONTRIBUTING.md).*
+```
+fitmo/
+├── lib/
+│   ├── main.dart           # Ponto de entrada do aplicativo
+│   ├── providers/          # Gerenciamento de estado
+│   ├── models/             # Modelos de dados
+│   ├── screens/            # Telas da interface
+│   ├── widgets/            # Componentes reutilizáveis
+│   └── utils/              # Funções utilitárias
+├── assets/
+│   ├── images/             # Imagens e ícones
+│   ├── fonts/              # Fontes personalizadas
+│   └── audio/              # Arquivos de áudio para testes
+└── test/                   # Testes unitários e de interface
 ```
 
-### Principais Melhorias:
-1. **Seção "Funcionalidades Atuais"**: Substituiu "Futuras Features" para refletir o MVP atual.
-2. **Instruções de Execução Realistas**: Adaptadas para Flutter/Kotlin (removendo npm).
-3. **Papéis dos Contribuidores**: Atribuição clara de funções para todos os membros.
-4. **Próximos Passos**: Roadmap transparente substituindo a seção de features futuras.
-5. **Badges Dinâmicas**: Adicionado status do projeto e licença via Shields.io.
-6. **Contexto Acadêmico**: Detalhamento da relação com o Senac no "Sobre o Projeto".
+## 🚀 Como Executar o Projeto
+
+### Requisitos do Sistema
+- Flutter SDK (versão 3.13.0 ou superior)
+- Android Studio com extensões Flutter/Dart
+- Android SDK (API level 21+/Android 5.0 Lollipop ou superior)
+- Dispositivo Android físico ou emulador
+
+### Passo a Passo
+1. **Clone o repositório**
+   ```bash
+   git clone https://github.com/seu-usuario/fitmo.git
+   cd fitmo
+   ```
+
+2. **Instale as dependências**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Execute o aplicativo**
+   ```bash
+   flutter run
+   ```
+
+4. **Para build de produção**
+   ```bash
+   flutter build apk --release
+   ```
+   
+5. **Gerando um APK instalável**
+   ```bash
+   # Bundle (.aab) para Google Play
+   flutter build appbundle --release
+   
+   # APK dividido por arquitetura
+   flutter build apk --split-per-abi --release
+   ```
+
+## 📱 Capturas de Tela
+
+<div align="center">
+  <table>
+    <tr>
+      <td><img src="screenshots/login_screen.png" width="200" alt="Tela de Login"></td>
+      <td><img src="screenshots/workout_screen.png" width="200" alt="Tela de Treino"></td>
+      <td><img src="screenshots/music_player.png" width="200" alt="Player de Música"></td>
+    </tr>
+    <tr>
+      <td align="center">Login</td>
+      <td align="center">Treinos</td>
+      <td align="center">Player de Música</td>
+    </tr>
+  </table>
+</div>
+
+## 🌗 Tema Claro e Escuro
+
+O Fitmo oferece suporte completo a temas claro e escuro, adaptando-se às preferências do usuário e condições de iluminação:
+
+- **Tema Escuro**: Ideal para treinos noturnos e economia de bateria
+- **Tema Claro**: Perfeito para ambientes externos e boa visibilidade diurna
+- **Alternância automática** baseada nas configurações do sistema Android
+
+## 📱 Compatibilidade com Android
+
+O Fitmo é otimizado para funcionar na maioria dos dispositivos Android:
+
+- **Versão mínima**: Android 5.0 (Lollipop) / API Level 21
+- **Versão recomendada**: Android 10.0 ou superior
+- **Suporte a tablets**: Layout adaptativo para telas maiores
+
+## 👥 Equipe
+
+- **LUIZ FERNANDO COSTA DA SILVA**
+- **LUIZ GUSTAVO OLIVEIRA DE LIMA**
+- **GABRIEL ROSA NEGREIROS DIAS**
+- **VICTOR SILVA DE ANDRADE**
+- **THIAGO VIEIRA NOBRE**
+
+## 📊 Roadmap
+
+### Ideias Futuras
+- [ ] Integração com serviços de streaming de música (Spotify, YouTube Music)
+- [ ] Criação de Playlists para cada treino
+- [ ] Conexão com dispositivos wearables Android (WearOS, monitores cardíacos)
+- [ ] Estatísticas avançadas e gráficos de progressão
+- [ ] Modo de treino offline com download de playlists
+- [ ] Widgets para tela inicial Android
+- [ ] Integração com Google Fit
+
+## 📄 Licença
+
+Este projeto está licenciado sob a **MIT License** - consulte o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 🙌 Agradecimentos
+
+- Ao orientador **Gustavo Calixto** pelo suporte técnico e mentoria
+- Ao Senac pela infraestrutura e oportunidades de aprendizado
+- À comunidade Flutter pelo ecossistema robusto
+
+---
+
+<div align="center">
+  <p>Desenvolvido como parte do Projeto Integrador do curso de Análise e Desenvolvimento de Sistemas do Senac.</p>
+  <p>🌟 <b>Transforme seus treinos com o Fitmo!</b> 🌟</p>
+</div>
