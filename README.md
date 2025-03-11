@@ -114,23 +114,6 @@ fitmo/
    flutter build apk --split-per-abi --release
    ```
 
-## 📱 Capturas de Tela
-
-<div align="center">
-  <table>
-    <tr>
-      <td><img src="screenshots/login_screen.png" width="200" alt="Tela de Login"></td>
-      <td><img src="screenshots/workout_screen.png" width="200" alt="Tela de Treino"></td>
-      <td><img src="screenshots/music_player.png" width="200" alt="Player de Música"></td>
-    </tr>
-    <tr>
-      <td align="center">Login</td>
-      <td align="center">Treinos</td>
-      <td align="center">Player de Música</td>
-    </tr>
-  </table>
-</div>
-
 ## 🌗 Tema Claro e Escuro
 
 O Fitmo oferece suporte completo a temas claro e escuro, adaptando-se às preferências do usuário e condições de iluminação:
