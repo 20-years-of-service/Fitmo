@@ -22,8 +22,11 @@ O **Fitmo** é um aplicativo de fitness exclusivo para Android que combina trein
 - Acompanhamento de progresso e histórico de atividades
 - Perfil personalizado com suas informações e metas
 
+  ## 📽️ Video de demonstração?
+
 - Video de DEMONSTRAÇÃO do estado atual
-- Link: https://www.youtube.com/shorts/SSY-fUPdnfc
+  Link: https://www.youtube.com/shorts/SSY-fUPdnfc
+
 
 ## ✨ Recursos Principais
 
