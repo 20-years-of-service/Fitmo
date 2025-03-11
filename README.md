@@ -85,6 +85,7 @@ fitmo/
 
 ### Download Direto do APK
 Se você deseja apenas instalar e usar o aplicativo sem configurar o ambiente de desenvolvimento, você pode baixar o APK diretamente na seção [📲 Download do APK](#-download-do-apk) deste README.
+Se você deseja apenas instalar e usar o aplicativo sem configurar o ambiente de desenvolvimento, você pode baixar o APK diretamente na seção "Releases".
 
 ### Passo a Passo
 1. **Clone o repositório**
